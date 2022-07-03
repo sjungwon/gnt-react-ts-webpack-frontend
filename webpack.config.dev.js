@@ -2,6 +2,7 @@ const path = require("path");
 const GetCSSModuleLocalIdent = require("react-dev-utils/getCSSModuleLocalIdent");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   entry: "./src/index.tsx",
@@ -32,6 +33,22 @@ module.exports = {
         use: ["babel-loader", "ts-loader"],
       },
       {
+        test: /\.css$/i,
+        exclude: /node_modules/,
+        use: [
+          "style-loader",
+          "css-loader",
+          {
+            loader: "postcss-loader",
+            options: {
+              postcssOptions: {
+                plugins: [["postcss-preset-env"]],
+              },
+            },
+          },
+        ],
+      },
+      {
         test: /\.s[ac]ss$/i,
         exclude: /node_modules/,
         use: [
@@ -44,23 +61,37 @@ module.exports = {
               },
             },
           },
-          "postcss-loader",
+          {
+            loader: "postcss-loader",
+            options: {
+              postcssOptions: {
+                plugins: [["postcss-preset-env"]],
+              },
+            },
+          },
           "sass-loader",
         ],
       },
     ],
   },
   plugins: [
+    new HtmlWebpackPlugin({
+      filename: "index.html",
+      template: "public/index.html",
+      favicon: "public/favicon.ico",
+    }),
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: path.resolve(__dirname, "public"),
-          to: "[path]/[name][ext]",
+          from: "./public/*",
+          filter: (filePath) =>
+            !filePath.includes(".html") && !filePath.includes("favicon.ico"),
         },
       ],
     }),
     new ESLintPlugin({
       extensions: ["ts", "tsx"],
+      emitWarning: false,
     }),
   ],
 };

@@ -5,6 +5,7 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const MiniCSSExtractPlugin = require("mini-css-extract-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   entry: "./src/index.tsx",
@@ -28,6 +29,29 @@ module.exports = {
         test: /\.ts(x?)$/,
         exclude: /node_modules/,
         use: ["babel-loader", "ts-loader"],
+      },
+      {
+        test: /\.css$/i,
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: MiniCSSExtractPlugin.loader,
+            options: {
+              publicPath: (resourcePath, context) => {
+                return path.relative(path.dirname(resourcePath), context) + "/";
+              },
+            },
+          },
+          "css-loader",
+          {
+            loader: "postcss-loader",
+            options: {
+              postcssOptions: {
+                plugins: [["postcss-preset-env"]],
+              },
+            },
+          },
+        ],
       },
       {
         test: /\.s[ac]ss$/i,
@@ -56,19 +80,24 @@ module.exports = {
     ],
   },
   plugins: [
+    new HtmlWebpackPlugin({
+      filename: "public/index.html",
+      template: "public/index.html",
+    }),
     new ForkTsCheckerWebpackPlugin(),
     new CleanWebpackPlugin({ cleanAfterEveryBuildPatterns: ["dist"] }),
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: path.resolve(__dirname, "public", "*"),
-          to: "[path]/[name][ext]",
+          from: "./public/*",
+          filter: (filePath) => !filePath.includes(".html"),
         },
       ],
     }),
     new MiniCSSExtractPlugin({ filename: "style.css" }),
     new ESLintPlugin({
       extensions: ["ts", "tsx"],
+      emitWarning: false,
     }),
   ],
 };
