@@ -1,6 +1,7 @@
 const path = require("path");
 const GetCSSModuleLocalIdent = require("react-dev-utils/getCSSModuleLocalIdent");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const ESLintPlugin = require("eslint-webpack-plugin");
 
 module.exports = {
   entry: "./src/index.tsx",
@@ -57,6 +58,9 @@ module.exports = {
           to: "[path]/[name][ext]",
         },
       ],
+    }),
+    new ESLintPlugin({
+      extensions: ["ts", "tsx"],
     }),
   ],
 };
