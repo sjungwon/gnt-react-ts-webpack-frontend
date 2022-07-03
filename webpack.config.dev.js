@@ -1,6 +1,5 @@
 const path = require("path");
 const GetCSSModuleLocalIdent = require("react-dev-utils/getCSSModuleLocalIdent");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
@@ -51,13 +50,10 @@ module.exports = {
     ],
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: "./public/index.html",
-    }),
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: path.resolve(__dirname, "public", "*"),
+          from: path.resolve(__dirname, "public"),
           to: "[path]/[name][ext]",
         },
       ],
