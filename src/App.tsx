@@ -10,7 +10,7 @@ export default function App(): JSX.Element {
         <BrowserRouter>
           <Routes>
             <Route path="*" element={<NotFoundPage />} />
-            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signin" element={<LoginPage />} />
           </Routes>
         </BrowserRouter>
       </ErrorBoundary>
