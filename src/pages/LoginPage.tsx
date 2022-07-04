@@ -13,16 +13,21 @@ import { AiOutlineArrowLeft } from "react-icons/ai";
 import DefaultButton from "../components/atoms/DefaultButton";
 import DefaultTextInput from "../components/atoms/DefaultTextInput";
 import LoadingBlock from "../components/atoms/LoadingBlock";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUserLogin } from "../redux/modules/auth";
+import { AppDispath, RootState } from "../redux/store";
 
 export default function LoginPage() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  const [loginFailMessage, setLoginFailMessage] = useState<string>("");
+  const dispatch = useDispatch<AppDispath>();
+  const status = useSelector((state: RootState) => state.auth.status);
+  const message = useSelector((state: RootState) => state.auth.message);
+
   const submitRef = useRef<HTMLButtonElement>(null);
   const [mdShow, setMdShow] = useState<boolean>(false);
   const [btnDisabled, setbtnDisabled] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(false);
 
   const openModal = useCallback(() => {
     setMdShow(true);
@@ -83,36 +88,11 @@ export default function LoginPage() {
   //제출
   const clickToSubmit: MouseEventHandler<HTMLButtonElement> = async (event) => {
     event.preventDefault();
+    console.log("submit");
     if (username && password) {
-      setLoading(true);
-      try {
-        // await AuthServices.signIn({
-        //   username,
-        //   password,
-        // });
-        // checkLogin();
-        navigate(-1);
-      } catch (error: any) {
-        setLoading(false);
-        //가입 확인을 안한 유저이면
-        if (error.message === "User is not confirmed.") {
-          try {
-            //확인 코드 재전송
-            // await AuthServices.resendConfirmationCode(username);
-            //확인 모달 열기
-            setLoginFailMessage("");
-            setLoginUserName(username);
-            setConfirmModalShow(true);
-          } catch {
-            setLoginFailMessage(
-              "가입 코드를 재전송하는데 실패했습니다. 재시도 해주세요."
-            );
-          }
-        } else {
-          setLoginFailMessage(
-            "닉네임 혹은 비밀번호를 다시 확인하세요. 등록되지 않은 닉네임이거나 닉네임 혹은 비밀번호를 잘못 입력하셨습니다. "
-          );
-        }
+      dispatch(fetchUserLogin({ username, password }));
+      if (status === "success") {
+        // navigate(-1);
       }
     }
   };
@@ -178,15 +158,17 @@ export default function LoginPage() {
                 id="passwordHelpBlock"
                 bsPrefix={styles.login_error__message}
               >
-                {loginFailMessage}
+                {message}
               </Form.Text>
               <DefaultButton
                 size="xl"
                 onClick={clickToSubmit}
-                disabled={loading || btnDisabled}
+                disabled={status === "pending" || btnDisabled}
                 ref={submitRef}
               >
-                <LoadingBlock loading={loading}>로그인</LoadingBlock>
+                <LoadingBlock loading={status === "pending"}>
+                  로그인
+                </LoadingBlock>
               </DefaultButton>
             </Form>
             <div
@@ -205,14 +187,8 @@ export default function LoginPage() {
               <DefaultButton size="xl" onClick={openModal} color="blue">
                 회원가입
               </DefaultButton>
-              {/* <RegisterConfirmModal
-                mdShow={confirmModalShow}
-                modalClose={closeConfirmModal}
-                parentMdClose={() => {}}
-                username={loginUsername}
-              /> */}
+              {/* <RegisterModal parentMdShow={mdShow} parentMdClose={closeModal} /> */}
             </div>
-            {/* <RegisterModal parentMdShow={mdShow} parentMdClose={closeModal} /> */}
           </div>
         </div>
       </div>
