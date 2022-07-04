@@ -1,6 +1,6 @@
 import API from "./basic";
 
-export interface LoginData {
+export interface SigninData {
   username: string;
   password: string;
 }
@@ -11,17 +11,27 @@ export interface UserDataType {
   admin: boolean;
 }
 
-export interface LoginResDataType {
+export interface SigninResDataType {
   userData: UserDataType;
   accessToken: string;
 }
 
-export class AuthAPI {
-  private static readonly path = "auth/";
-  public static login = (
-    loginData: LoginData
-  ): Promise<{ data: LoginResDataType }> => {
-    const path = this.path + "signin/";
-    return API.post(path, loginData);
-  };
+export interface SignupData {
+  username: string;
+  password: string;
+  email: string;
 }
+
+const path = "auth/";
+
+export const signinAPI = (
+  signinData: SigninData
+): Promise<{ data: SigninResDataType }> => {
+  const loginPath = path + "signin/";
+  return API.post(loginPath, signinData);
+};
+
+export const signupAPI = (signupData: SignupData): Promise<void> => {
+  const signupPath = path + "signup/";
+  return API.post(signupPath, signupData);
+};

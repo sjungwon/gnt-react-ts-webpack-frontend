@@ -1,8 +1,7 @@
 import {
   MouseEventHandler,
   useCallback,
-  // useContext,
-  // useEffect,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -14,16 +13,17 @@ import DefaultButton from "../components/atoms/DefaultButton";
 import DefaultTextInput from "../components/atoms/DefaultTextInput";
 import LoadingBlock from "../components/atoms/LoadingBlock";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserLogin } from "../redux/modules/auth";
 import { AppDispath, RootState } from "../redux/store";
+import { signinThunk } from "../redux/modules/auth";
+import RegisterModal from "../components/molecules/RegisterModal";
 
 export default function LoginPage() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
   const dispatch = useDispatch<AppDispath>();
-  const status = useSelector((state: RootState) => state.auth.status);
-  const message = useSelector((state: RootState) => state.auth.message);
+  const status = useSelector((state: RootState) => state.auth.loginStatus);
+  const message = useSelector((state: RootState) => state.auth.loginMessage);
 
   const submitRef = useRef<HTMLButtonElement>(null);
   const [mdShow, setMdShow] = useState<boolean>(false);
@@ -86,16 +86,21 @@ export default function LoginPage() {
   // }, [loginUser, navigate]);
 
   //제출
-  const clickToSubmit: MouseEventHandler<HTMLButtonElement> = async (event) => {
-    event.preventDefault();
-    console.log("submit");
-    if (username && password) {
-      dispatch(fetchUserLogin({ username, password }));
-      if (status === "success") {
-        // navigate(-1);
+  const clickToSubmit: MouseEventHandler<HTMLButtonElement> = useCallback(
+    async (event) => {
+      event.preventDefault();
+      if (username && password) {
+        dispatch(signinThunk({ username, password }));
       }
+    },
+    [dispatch, password, username]
+  );
+
+  useEffect(() => {
+    if (status === "success") {
+      navigate(-1);
     }
-  };
+  }, [navigate, status]);
 
   const enterSubmit = useCallback(
     (event: KeyboardEvent) => {
@@ -187,7 +192,7 @@ export default function LoginPage() {
               <DefaultButton size="xl" onClick={openModal} color="blue">
                 회원가입
               </DefaultButton>
-              {/* <RegisterModal parentMdShow={mdShow} parentMdClose={closeModal} /> */}
+              <RegisterModal mdShow={mdShow} mdClose={closeModal} />
             </div>
           </div>
         </div>
