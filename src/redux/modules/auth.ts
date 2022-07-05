@@ -1,10 +1,15 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { signinAPI, SigninData, signupAPI, SignupData } from "../../apis/auth";
+import {
+  accessTokenRefresh,
+  signinAPI,
+  SigninData,
+  signupAPI,
+  SignupData,
+} from "../../apis/auth";
 
 export interface AuthState {
   loginStatus: "idle" | "pending" | "success" | "failed";
   loginMessage: string;
-  token: string;
   username: string;
   userId: string;
   admin: boolean;
@@ -15,7 +20,6 @@ export interface AuthState {
 const initialState: AuthState = {
   loginStatus: "idle",
   loginMessage: "",
-  token: "",
   username: "",
   userId: "",
   admin: false,
@@ -50,13 +54,18 @@ export const signupThunk = createAsyncThunk(
   }
 );
 
+export const checkThunk = createAsyncThunk("auth/check", async () => {
+  const response = await accessTokenRefresh();
+  return response.data;
+});
+
 export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(signinThunk.pending, (state, action) => {
+      .addCase(signinThunk.pending, (state) => {
         state.loginStatus = "pending";
       })
       .addCase(signinThunk.fulfilled, (state, action) => {
@@ -65,7 +74,6 @@ export const authSlice = createSlice({
         state.username = action.payload.userData.username;
         state.userId = action.payload.userData.id;
         state.admin = action.payload.userData.admin;
-        state.token = action.payload.accessToken;
         state.loginMessage = "";
       })
       .addCase(signinThunk.rejected, (state, action) => {
@@ -80,12 +88,11 @@ export const authSlice = createSlice({
         state.username = "";
         state.userId = "";
         state.admin = false;
-        state.token = "";
       })
-      .addCase(signupThunk.pending, (state, action) => {
+      .addCase(signupThunk.pending, (state) => {
         state.registerStatus = "pending";
       })
-      .addCase(signupThunk.fulfilled, (state, action) => {
+      .addCase(signupThunk.fulfilled, (state) => {
         state.registerStatus = "success";
       })
       .addCase(signupThunk.rejected, (state, action) => {
@@ -105,6 +112,23 @@ export const authSlice = createSlice({
               "가입에 실패 했습니다. 서버측 오류일 수 있으니 다시 시도해주세요.";
             break;
         }
+      })
+      .addCase(checkThunk.pending, (state) => {
+        state.loginStatus = "pending";
+      })
+      .addCase(checkThunk.fulfilled, (state, action) => {
+        state.loginStatus = "success";
+        state.username = action.payload.userData.username;
+        state.userId = action.payload.userData.id;
+        state.admin = action.payload.userData.admin;
+        state.loginMessage = "";
+      })
+      .addCase(checkThunk.rejected, (state) => {
+        state.loginStatus = "idle";
+        state.username = "";
+        state.userId = "";
+        state.admin = false;
+        state.loginMessage = "";
       });
   },
 });
