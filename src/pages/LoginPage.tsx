@@ -65,25 +65,7 @@ export default function LoginPage() {
     [username]
   );
 
-  //가입 확인 안한 유저에 대한 확인 모달
-  const [confirmModalShow, setConfirmModalShow] = useState<boolean>(false);
-  const closeConfirmModal = useCallback(() => {
-    setConfirmModalShow(false);
-  }, []);
-
-  //모달에 전달할 유저 이름 상태
-  const [loginUsername, setLoginUserName] = useState<string>("");
-
-  //제출시 로그인 내역 전역 user 데이터에 설정
-  // const { checkLogin, username: loginUser } = useContext(UserDataContext);
-
   const navigate = useNavigate();
-
-  // useEffect(() => {
-  //   if (loginUser) {
-  //     navigate("/");
-  //   }
-  // }, [loginUser, navigate]);
 
   //제출
   const clickToSubmit: MouseEventHandler<HTMLButtonElement> = useCallback(

@@ -31,6 +31,11 @@ export const signinAPI = (
   return API.post(loginPath, signinData);
 };
 
+export const signoutAPI = (): Promise<void> => {
+  const logoutPath = path + "signout";
+  return API.post(logoutPath);
+};
+
 export const signupAPI = (signupData: SignupData): Promise<void> => {
   const signupPath = path + "signup";
   return API.post(signupPath, signupData);

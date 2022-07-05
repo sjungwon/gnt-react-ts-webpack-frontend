@@ -3,6 +3,7 @@ import {
   accessTokenRefresh,
   signinAPI,
   SigninData,
+  signoutAPI,
   signupAPI,
   SignupData,
 } from "../../apis/auth";
@@ -28,12 +29,16 @@ const initialState: AuthState = {
 };
 
 export const signinThunk = createAsyncThunk(
-  "auth/login",
+  "auth/signin",
   async (signinData: SigninData) => {
     const response = await signinAPI(signinData);
     return response.data;
   }
 );
+
+export const signoutThunk = createAsyncThunk("auth/signout", async () => {
+  await signoutAPI();
+});
 
 interface signupErrorBodyType {
   error: string;
@@ -129,6 +134,21 @@ export const authSlice = createSlice({
         state.userId = "";
         state.admin = false;
         state.loginMessage = "";
+      })
+      .addCase(signoutThunk.pending, (state) => {
+        state.loginStatus = "pending";
+      })
+      .addCase(signoutThunk.fulfilled, (state) => {
+        state.loginStatus = "idle";
+        state.loginMessage = "";
+        state.username = "";
+        state.userId = "";
+        state.admin = false;
+        state.registerStatus = "idle";
+        state.registerMessage = "";
+      })
+      .addCase(signoutThunk.rejected, (state) => {
+        state.loginStatus = "idle";
       });
   },
 });
