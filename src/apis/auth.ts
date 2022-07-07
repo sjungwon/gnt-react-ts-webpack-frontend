@@ -41,7 +41,7 @@ export const signupAPI = (signupData: SignupData): Promise<void> => {
   return API.post(signupPath, signupData);
 };
 
-export const accessTokenRefresh = async (): Promise<{
+export const accessTokenRefreshAPI = async (): Promise<{
   data: SigninResDataType;
 }> => {
   const checkPath = path + `refresh`;
@@ -51,4 +51,27 @@ export const accessTokenRefresh = async (): Promise<{
     setAPIToken(accessToken);
   }
   return response;
+};
+
+export interface FindUserData {
+  username: string;
+  email: string;
+}
+
+export const findPasswordAPI = async (
+  findUserData: FindUserData
+): Promise<void> => {
+  const findPath = path + `find`;
+  return API.post(findPath, findUserData);
+};
+
+export interface ChangePasswordData extends FindUserData {
+  password: string;
+}
+
+export const chagnePasswordAPI = async (
+  changePasswordData: ChangePasswordData
+): Promise<void> => {
+  const changePath = path + "change";
+  return API.post(changePath, changePasswordData);
 };

@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispath, RootState } from "../redux/store";
 import { signinThunk } from "../redux/modules/auth";
 import RegisterModal from "../components/molecules/RegisterModal";
+import FindPasswordModal from "../components/molecules/FindPasswordModal";
 
 export default function LoginPage() {
   const [username, setUsername] = useState<string>("");
@@ -165,10 +166,10 @@ export default function LoginPage() {
             >
               비밀번호를 잊으셨나요?
             </div>
-            {/* <FindPasswordModal
+            <FindPasswordModal
               show={showFindPassword}
               close={closeFindPassword}
-            /> */}
+            />
             <div className={styles.line}></div>
             <div className={styles.register_container}>
               <DefaultButton size="xl" onClick={openModal} color="blue">

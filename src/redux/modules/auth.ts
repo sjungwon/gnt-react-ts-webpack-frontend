@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
-  accessTokenRefresh,
+  accessTokenRefreshAPI,
   signinAPI,
   SigninData,
   signoutAPI,
@@ -60,7 +60,7 @@ export const signupThunk = createAsyncThunk(
 );
 
 export const checkThunk = createAsyncThunk("auth/check", async () => {
-  const response = await accessTokenRefresh();
+  const response = await accessTokenRefreshAPI();
   return response.data;
 });
 

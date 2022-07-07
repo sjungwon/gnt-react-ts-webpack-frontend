@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from "axios";
-import { accessTokenRefresh } from "./auth";
+import { accessTokenRefreshAPI } from "./auth";
 
 export const API = axios.create({
   baseURL: "http://localhost:8000",
@@ -33,7 +33,7 @@ APIWithToken.interceptors.response.use(
       //변경된 token 정보가 필요함 -> refresh 함수쪽에서 반환하게 처리
       //origReq에서 headers에 이전 토큰 정보 들어가 있어서 변경해줘야함
       try {
-        const response = await accessTokenRefresh();
+        const response = await accessTokenRefreshAPI();
         const newToken = response.data.accessToken;
         const newConfig: AxiosRequestConfig = {
           ...origReq,
