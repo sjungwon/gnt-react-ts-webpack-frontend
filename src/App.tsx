@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch } from "react-redux";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { checkThunk } from "./redux/modules/auth";
@@ -19,6 +20,7 @@ export default function App(): JSX.Element {
         <BrowserRouter>
           <Routes>
             <Route path="*" element={<NotFoundPage />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/signin" element={<LoginPage />} />
           </Routes>
         </BrowserRouter>
