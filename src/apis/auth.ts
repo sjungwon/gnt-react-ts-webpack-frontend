@@ -24,11 +24,16 @@ export interface SignupData {
 
 const path = "auth/";
 
-export const signinAPI = (
+export const signinAPI = async (
   signinData: SigninData
 ): Promise<{ data: SigninResDataType }> => {
   const loginPath = path + "signin";
-  return API.post(loginPath, signinData);
+  const response = await API.post(loginPath, signinData);
+  const accessToken = response.data.accessToken;
+  if (accessToken) {
+    setAPIToken(accessToken);
+  }
+  return response;
 };
 
 export const signoutAPI = (): Promise<void> => {
