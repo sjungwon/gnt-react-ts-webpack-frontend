@@ -7,6 +7,7 @@ export const API = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 3000,
 });
 
 export const APIWithToken = axios.create({
@@ -15,6 +16,7 @@ export const APIWithToken = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 3000,
 });
 
 APIWithToken.interceptors.response.use(

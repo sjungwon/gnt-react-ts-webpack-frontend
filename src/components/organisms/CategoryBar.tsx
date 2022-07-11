@@ -72,7 +72,7 @@ export default function CategoryBar({ show }: PropsType) {
               <h3 className={styles.category_title}>게임 리스트</h3>
             </div>
             <DefaultButton
-              size="sm"
+              size="md"
               onClick={setShowAddHandler}
               disabled={!username}
             >

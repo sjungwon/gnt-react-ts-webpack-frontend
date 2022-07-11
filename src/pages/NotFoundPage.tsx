@@ -23,8 +23,8 @@ const NotFoundPage: FC<{}> = () => {
         <h1 className={styles.title}>404 - Not Found</h1>
         <div className={styles.card_img}>
           <img
-            src="./not_found_icon.png"
-            alt="not_found img"
+            src="/not_found_icon.png"
+            alt="not found"
             className={styles.not_found_img}
           />
         </div>
