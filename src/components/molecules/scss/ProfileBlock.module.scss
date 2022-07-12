@@ -1,29 +1,34 @@
 @import "../../../scss/variables";
 
-.profile_img{
+.profile_img {
   height: 1.75rem;
   width: 1.75rem;
-  margin-right: .25rem;
+  margin-right: 0.25rem;
   border-radius: 50%;
-  object-fit:cover;
+  object-fit: cover;
 }
-.profile_img_lg{
+.profile_img_lg {
   height: 2rem;
   width: 2rem;
 }
 
-.profile_nickname{
+.profile_nickname {
   font-size: 0.8rem;
   font-weight: 500;
   word-break: break-all;
 }
 
-.profile_nickname_lg{
+.profile_nickname_lg {
   font-size: 0.85rem;
   margin-bottom: 1px;
 }
 
-.profile_username{
-  padding-right: .5rem;
-  font-size: .8rem;
+.profile_username {
+  padding-right: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.vertical {
+  margin: 0;
+  margin-bottom: 0.25rem;
 }

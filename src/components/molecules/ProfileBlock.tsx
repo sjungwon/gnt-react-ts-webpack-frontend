@@ -9,6 +9,7 @@ interface PropsType {
   hideUsername?: true;
   disableNavigate?: true;
   size?: "md" | "lg";
+  vertical?: true;
 }
 
 export default function ProfileBlock({
@@ -17,6 +18,7 @@ export default function ProfileBlock({
   disableNavigate,
   children,
   size = "md",
+  vertical,
 }: PropsType) {
   // const profileImage = useProfileImage(profile.profileImage);
 
@@ -27,7 +29,7 @@ export default function ProfileBlock({
       <>
         <img
           src={"/default_profile.png"}
-          className={styles.profile_img}
+          className={`${styles.profile_img} ${vertical ? styles.vertical : ""}`}
           alt="profile"
           // onError={loadError}
         />
@@ -51,7 +53,7 @@ export default function ProfileBlock({
           src={"/default_profile.png"}
           className={`${styles.profile_img} ${
             size === "lg" ? styles.profile_img_lg : ""
-          }`}
+          } ${vertical ? styles.vertical : ""}`}
           alt="profile"
           // onError={loadError}
         />

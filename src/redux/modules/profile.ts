@@ -3,9 +3,10 @@ import {
   addProfileAPI,
   AddProfileReqType,
   deleteProfileAPI,
-  getMyProfilesAPI,
+  getProfilesAPI,
   updateProfileAPI,
 } from "../../apis/profile";
+import { SortProfiles } from "../../functions/SortFunc";
 
 export interface ProfileType {
   _id: string;
@@ -21,28 +22,10 @@ export interface ProfileType {
   createdAt: Date;
 }
 
-const SortProfiles = (profiles: ProfileType[]) => {
-  return [...profiles].sort((a, b) => {
-    if (a.category.title < b.category.title) {
-      return -1;
-    } else if (a.category.title > b.category.title) {
-      return 1;
-    } else {
-      if (a.name < b.name) {
-        return -1;
-      } else if (a.name > b.name) {
-        return 1;
-      } else {
-        return 0;
-      }
-    }
-  });
-};
-
 export const getMyProfilesThunk = createAsyncThunk(
   "profile/getMy",
-  async () => {
-    const response = await getMyProfilesAPI();
+  async (userId: string) => {
+    const response = await getProfilesAPI(userId, "id");
     return response.data;
   }
 );

@@ -7,7 +7,7 @@ import DefaultTextInput from "../atoms/DefaultTextInput";
 import AddCategory from "./AddCategory";
 // import { BsTrash } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispath, RootState } from "../../redux/store";
+import { AppDispatch, RootState } from "../../redux/store";
 import {
   addProfileThunk,
   ProfileType,
@@ -38,7 +38,7 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
       state.profile.modifyStatus[prevData ? prevData._id : "add"]
   );
 
-  const dispatch = useDispatch<AppDispath>();
+  const dispatch = useDispatch<AppDispatch>();
 
   const nicknameRef = useRef<HTMLInputElement>(null);
 

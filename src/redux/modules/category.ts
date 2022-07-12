@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { addCategoryAPI, getCategoryAPI } from "../../apis/category";
+import { SortCategory } from "../../functions/SortFunc";
 
 export interface CategoryType {
   title: string;
@@ -12,19 +13,6 @@ export interface CategoryType {
 }
 
 //function
-const SortCategory = (categories: CategoryType[]) => {
-  const sortedCategories = [...categories].sort((a, b) => {
-    if (a.title < b.title) {
-      return -1;
-    } else if (a.title > b.title) {
-      return 1;
-    } else {
-      return 0;
-    }
-  });
-
-  return sortedCategories;
-};
 
 //Thunks
 export const getCategoryThunk = createAsyncThunk(

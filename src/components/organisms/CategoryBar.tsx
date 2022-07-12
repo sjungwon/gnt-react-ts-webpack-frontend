@@ -4,7 +4,7 @@ import { AiOutlineUnorderedList } from "react-icons/ai";
 import styles from "./scss/CategoryBar.module.scss";
 import DefaultButton from "../atoms/DefaultButton";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispath, RootState } from "../../redux/store";
+import { AppDispatch, RootState } from "../../redux/store";
 import { getCategoryThunk } from "../../redux/modules/category";
 import LoadingBlock from "../atoms/LoadingBlock";
 import AddCategory from "../molecules/AddCategory";
@@ -56,7 +56,7 @@ export default function CategoryBar({ show }: PropsType) {
   }, [username]);
 
   const status = useSelector((state: RootState) => state.category.status);
-  const dispatch = useDispatch<AppDispath>();
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     dispatch(getCategoryThunk());

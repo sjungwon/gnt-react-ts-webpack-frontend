@@ -3,7 +3,7 @@ import { Modal } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { isIncludePathSpecial } from "../../functions/TextValidFunc";
 import { addCategoryThunk } from "../../redux/modules/category";
-import { AppDispath, RootState } from "../../redux/store";
+import { AppDispatch, RootState } from "../../redux/store";
 import DefaultButton from "../atoms/DefaultButton";
 import DefaultTextInput from "../atoms/DefaultTextInput";
 import LoadingBlock from "../atoms/LoadingBlock";
@@ -19,7 +19,7 @@ const AddCategory: FC<PropsType> = ({ show, close }) => {
     (state: RootState) => state.category.categories
   );
   const addStatus = useSelector((state: RootState) => state.category.addStatus);
-  const dispatch = useDispatch<AppDispath>();
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     if (addStatus === "failed") {

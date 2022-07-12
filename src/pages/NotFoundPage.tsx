@@ -2,7 +2,7 @@ import { FC, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { signoutThunk } from "../redux/modules/auth";
-import { AppDispath, RootState } from "../redux/store";
+import { AppDispatch, RootState } from "../redux/store";
 import styles from "./scss/NotFoundPage.module.scss";
 
 const NotFoundPage: FC<{}> = () => {
@@ -12,7 +12,7 @@ const NotFoundPage: FC<{}> = () => {
   }, [navigate]);
 
   const username = useSelector((state: RootState) => state.auth.username);
-  const dispatch = useDispatch<AppDispath>();
+  const dispatch = useDispatch<AppDispatch>();
   const logout = useCallback(() => {
     dispatch(signoutThunk());
   }, [dispatch]);

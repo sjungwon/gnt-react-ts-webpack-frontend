@@ -1,13 +1,16 @@
 import { AxiosResponse } from "axios";
 import { ProfileType } from "../redux/modules/profile";
-import { APIWithToken } from "./basic";
+import { API, APIWithToken } from "./basic";
 
 const path = "/profiles";
 
-export const getMyProfilesAPI = () => {
-  const myPath = path + "/user";
-  return APIWithToken.get<ProfileType[], AxiosResponse<ProfileType[]>, void>(
-    myPath
+export const getProfilesAPI = (
+  userCredential: string,
+  type: "id" | "username"
+) => {
+  const profilesPath = path + `/${type}/` + userCredential;
+  return API.get<ProfileType[], AxiosResponse<ProfileType[]>, void>(
+    profilesPath
   );
 };
 
