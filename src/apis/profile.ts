@@ -21,6 +21,11 @@ export interface AddProfileReqType {
   profileImage?: File;
 }
 
+export const getProfileByIdAPI = (profileId: string) => {
+  const profilePath = path + "/" + profileId;
+  return API.get<ProfileType, AxiosResponse<ProfileType>, void>(profilePath);
+};
+
 export const addProfileAPI = (profileData: TypedForm<AddProfileReqType>) => {
   return APIWithToken.post<ProfileType, AxiosResponse<ProfileType>, FormData>(
     path,
@@ -60,8 +65,4 @@ export const deleteProfileAPI = (profileId: string) => {
   return APIWithToken.delete<ProfileType, AxiosResponse<ProfileType>, void>(
     deletePath
   );
-};
-
-export const TestAPI = (formData: FormData) => {
-  return API.post(path + "/form", formData);
 };

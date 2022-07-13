@@ -25,7 +25,7 @@ export interface ProfileType {
     Key: string;
   };
   nickname: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 export const getMyProfilesThunk = createAsyncThunk(
