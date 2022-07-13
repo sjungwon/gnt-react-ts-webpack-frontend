@@ -18,7 +18,7 @@ import {
 } from "../../functions/TextValidFunc";
 import { useDispatch, useSelector } from "react-redux";
 import { signupThunk } from "../../redux/modules/auth";
-import { AppDispath, RootState } from "../../redux/store";
+import { AppDispatch, RootState } from "../../redux/store";
 
 type RegisterProps = {
   mdShow: boolean;
@@ -101,7 +101,7 @@ export default function RegisterModal({ mdShow, mdClose }: RegisterProps) {
   }, [mdShow, passwordInit]);
 
   //회원가입 제출
-  const dispatch = useDispatch<AppDispath>();
+  const dispatch = useDispatch<AppDispatch>();
   const submitSignUp: MouseEventHandler = useCallback(
     async (event) => {
       event.preventDefault();

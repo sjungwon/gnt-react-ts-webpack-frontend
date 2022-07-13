@@ -13,7 +13,7 @@ import DefaultButton from "../components/atoms/DefaultButton";
 import DefaultTextInput from "../components/atoms/DefaultTextInput";
 import LoadingBlock from "../components/atoms/LoadingBlock";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispath, RootState } from "../redux/store";
+import { AppDispatch, RootState } from "../redux/store";
 import { signinThunk } from "../redux/modules/auth";
 import RegisterModal from "../components/molecules/RegisterModal";
 import FindPasswordModal from "../components/molecules/FindPasswordModal";
@@ -22,7 +22,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  const dispatch = useDispatch<AppDispath>();
+  const dispatch = useDispatch<AppDispatch>();
   const status = useSelector((state: RootState) => state.auth.loginStatus);
   const message = useSelector((state: RootState) => state.auth.loginMessage);
 

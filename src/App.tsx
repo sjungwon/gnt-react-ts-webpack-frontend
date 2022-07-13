@@ -7,21 +7,21 @@ import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { checkThunk } from "./redux/modules/auth";
 import { getMyProfilesThunk } from "./redux/modules/profile";
-import { AppDispath, RootState } from "./redux/store";
+import { AppDispatch, RootState } from "./redux/store";
 
 export default function App(): JSX.Element {
-  const dispatch = useDispatch<AppDispath>();
+  const dispatch = useDispatch<AppDispatch>();
   useEffect(() => {
     dispatch(checkThunk());
   }, [dispatch]);
 
-  const username = useSelector((state: RootState) => state.auth.username);
+  const userId = useSelector((state: RootState) => state.auth.userId);
 
   useEffect(() => {
-    if (username) {
-      dispatch(getMyProfilesThunk());
+    if (userId) {
+      dispatch(getMyProfilesThunk(userId));
     }
-  }, [dispatch, username]);
+  }, [dispatch, userId]);
 
   return (
     <div className="app">

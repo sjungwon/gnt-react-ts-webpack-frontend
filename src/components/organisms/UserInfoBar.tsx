@@ -1,14 +1,10 @@
 import styles from "./scss/UserInfoBar.module.scss";
-import ProfileList from "../molecules/ProfileList";
-import { useSelector } from "react-redux";
-import { RootState } from "../../redux/store";
+import UserProfileList from "../molecules/UserProfileList";
 
 export default function UserInfoBar() {
-  const profiles = useSelector((state: RootState) => state.profile.profiles);
-
   return (
     <div className={styles.container}>
-      <ProfileList profileArr={profiles} />
+      <UserProfileList />
     </div>
   );
 }

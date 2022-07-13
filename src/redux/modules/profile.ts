@@ -3,9 +3,12 @@ import {
   addProfileAPI,
   AddProfileReqType,
   deleteProfileAPI,
-  getMyProfilesAPI,
+  getProfilesAPI,
   updateProfileAPI,
+  UpdateProfileReqType,
 } from "../../apis/profile";
+import { TypedForm } from "../../classes/TypedForm";
+import { SortProfiles } from "../../functions/SortFunc";
 
 export interface ProfileType {
   _id: string;
@@ -17,39 +20,25 @@ export interface ProfileType {
     _id: string;
     title: string;
   };
-  name: string;
-  createdAt: Date;
+  profileImage: {
+    URL: string;
+    Key: string;
+  };
+  nickname: string;
+  createdAt?: Date;
 }
-
-const SortProfiles = (profiles: ProfileType[]) => {
-  return [...profiles].sort((a, b) => {
-    if (a.category.title < b.category.title) {
-      return -1;
-    } else if (a.category.title > b.category.title) {
-      return 1;
-    } else {
-      if (a.name < b.name) {
-        return -1;
-      } else if (a.name > b.name) {
-        return 1;
-      } else {
-        return 0;
-      }
-    }
-  });
-};
 
 export const getMyProfilesThunk = createAsyncThunk(
   "profile/getMy",
-  async () => {
-    const response = await getMyProfilesAPI();
+  async (userId: string) => {
+    const response = await getProfilesAPI(userId, "id");
     return response.data;
   }
 );
 
 export const addProfileThunk = createAsyncThunk(
   "profile/add",
-  async (profileData: AddProfileReqType) => {
+  async (profileData: TypedForm<AddProfileReqType>) => {
     const response = await addProfileAPI(profileData);
     return response.data;
   }
@@ -57,10 +46,13 @@ export const addProfileThunk = createAsyncThunk(
 
 export const updateProfileThunk = createAsyncThunk(
   "profile/update",
-  async (updateData: { profileId: string; newProfileName: string }) => {
+  async (updateData: {
+    profileId: string;
+    profileData: TypedForm<UpdateProfileReqType>;
+  }) => {
     const response = await updateProfileAPI(
       updateData.profileId,
-      updateData.newProfileName
+      updateData.profileData
     );
     return response.data;
   }
