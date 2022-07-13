@@ -1,4 +1,5 @@
 import { AxiosResponse } from "axios";
+import { TypedForm } from "../classes/TypedForm";
 import { ProfileType } from "../redux/modules/profile";
 import { API, APIWithToken } from "./basic";
 
@@ -16,28 +17,42 @@ export const getProfilesAPI = (
 
 export interface AddProfileReqType {
   category: string;
-  name: string;
+  nickname: string;
+  profileImage?: File;
 }
 
-export const addProfileAPI = (profileData: AddProfileReqType) => {
-  return APIWithToken.post<
-    ProfileType,
-    AxiosResponse<ProfileType>,
-    AddProfileReqType
-  >(path, profileData);
+export const addProfileAPI = (profileData: TypedForm<AddProfileReqType>) => {
+  return APIWithToken.post<ProfileType, AxiosResponse<ProfileType>, FormData>(
+    path,
+    profileData.data,
+    {
+      headers: {
+        "Content-type": "multipart/form-data",
+      },
+    }
+  );
 };
 
 export interface UpdateProfileReqType {
-  name: string;
+  category: string;
+  nickname: string;
+  profileImage?: File | null;
 }
 
-export const updateProfileAPI = (profileId: string, newProfileName: string) => {
+export const updateProfileAPI = (
+  profileId: string,
+  profileData: TypedForm<UpdateProfileReqType>
+) => {
   const updatePath = path + "/" + profileId;
-  return APIWithToken.patch<
-    ProfileType,
-    AxiosResponse<ProfileType>,
-    UpdateProfileReqType
-  >(updatePath, { name: newProfileName });
+  return APIWithToken.patch<ProfileType, AxiosResponse<ProfileType>, FormData>(
+    updatePath,
+    profileData.data,
+    {
+      headers: {
+        "Content-type": "multipart/form-data",
+      },
+    }
+  );
 };
 
 export const deleteProfileAPI = (profileId: string) => {
@@ -45,4 +60,8 @@ export const deleteProfileAPI = (profileId: string) => {
   return APIWithToken.delete<ProfileType, AxiosResponse<ProfileType>, void>(
     deletePath
   );
+};
+
+export const TestAPI = (formData: FormData) => {
+  return API.post(path + "/form", formData);
 };

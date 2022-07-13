@@ -1,11 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  FormEventHandler,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Modal } from "react-bootstrap";
 import styles from "./scss/AddProfileModal.module.scss";
 import DefaultButton from "../atoms/DefaultButton";
 import LoadingBlock from "../atoms/LoadingBlock";
 import DefaultTextInput from "../atoms/DefaultTextInput";
 import AddCategory from "./AddCategory";
-// import { BsTrash } from "react-icons/bs";
+import { BsTrash } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
 import {
@@ -14,8 +20,10 @@ import {
   updateProfileThunk,
 } from "../../redux/modules/profile";
 import { isIncludePathSpecial } from "../../functions/TextValidFunc";
-import { AddProfileReqType } from "../../apis/profile";
+import { AddProfileReqType, UpdateProfileReqType } from "../../apis/profile";
 import CategorySelector from "../atoms/CategorySelector";
+import { TypedForm } from "../../classes/TypedForm";
+import ImageFileInputButton from "../atoms/ImageFileInputButton";
 
 interface PropsType {
   show: boolean;
@@ -55,6 +63,9 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
     [categories]
   );
 
+  const [file, setFile] = useState<File | undefined | null>(undefined);
+  const [image, setImage] = useState<string>("");
+
   //초기 설정
   useEffect(() => {
     if (!prevData) {
@@ -62,29 +73,20 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
         nicknameRef.current.value = "";
       }
       setSelectedCategory(null);
-      // setImage("");
+      setImage("");
       return;
     }
+
     if (nicknameRef.current) {
-      nicknameRef.current.value = prevData.name;
+      nicknameRef.current.value = prevData.nickname;
     }
     setSelectedCategory(prevData.category);
 
-    // if (prevData.profileImage) {
-    //   getPrevImage(prevData.profileImage, "profile");
-    // } else {
-    //   setImage("");
-    // }
+    setImage(prevData.profileImage.URL);
     // if (prevData.credential) {
     //   getPrevImage(prevData.credential, "credential");
     // }
   }, [prevData, show]);
-
-  // const [file, setFile] = useState<File | undefined>(undefined);
-  // const [image, setImage] = useState<string>("");
-  // const [prevProfileImageKey, setPrevProfileImageKey] = useState<
-  //   ImageKeys | undefined
-  // >(prevData?.profileImage);
 
   // const [credentialFile, setCredentialFile] = useState<File | undefined>(
   //   undefined
@@ -94,27 +96,23 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
   //   ImageKeys | undefined
   // >(prevData?.credential);
 
-  // const addImage = useCallback((event: any) => {
-  //   const files = (event.target as HTMLInputElement).files;
-  //   const file = files ? files[0] : null;
-  //   if (file) {
-  //     setFile(file);
-  //     setImage(URL.createObjectURL(file));
-  //     setPrevProfileImageKey({
-  //       resizedKey: "change",
-  //       fullsizeKey: "change",
-  //     });
-  //   }
-  // }, []);
+  const addImage = useCallback((event: any) => {
+    const files = (event.target as HTMLInputElement).files;
+    const file = files ? files[0] : null;
+    if (file) {
+      setFile(file);
+      setImage(URL.createObjectURL(file));
+    }
+  }, []);
 
-  // const removeImage = useCallback(() => {
-  //   setFile(undefined);
-  //   setImage("");
-  //   setPrevProfileImageKey({
-  //     resizedKey: "removed",
-  //     fullsizeKey: "removed",
-  //   });
-  // }, []);
+  const removeImage = useCallback(() => {
+    if (prevData && prevData.profileImage.URL) {
+      setFile(null);
+    } else {
+      setFile(undefined);
+    }
+    setImage("");
+  }, [prevData]);
 
   // const addCredentialImage: ChangeEventHandler<HTMLInputElement> = useCallback(
   //   (event) => {
@@ -141,20 +139,6 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
   //   });
   // }, []);
 
-  // const getPrevImage = useCallback(
-  //   async (key: ImageKeys, type: "profile" | "credential") => {
-  //     const image = await FileServices.getImage(key, "resized");
-  //     if (image) {
-  //       if (type === "profile") {
-  //         setImage(image);
-  //       } else {
-  //         setCredentialImage(image);
-  //       }
-  //     }
-  //   },
-  //   []
-  // );
-
   const submitProfile = useCallback(async () => {
     if (!selectedCategory) {
       window.alert("게임을 선택해주세요.");
@@ -163,58 +147,47 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
     const nickname = nicknameRef.current
       ? nicknameRef.current.value.trim()
       : "";
+
+    //닉네임 데이터 없으면 아무것도 안함
     if (!nickname) return;
+
+    //데이터 검증 -> 이름에 path 문자 검사
     if (isIncludePathSpecial(nickname)) {
       window.alert(
         `닉네임에 ! * ${"`"} ' ; : @ & = + $ , / ? ${"\\"} # [ ] ( ) 는 포함할 수 없습니다.`
       );
       return;
     }
+
+    //변경된 데이터 없으면 모달 닫기
     if (
       prevData &&
       selectedCategory.title === prevData.category.title &&
-      prevData.name === nickname
-      // prevProfileImageKey?.resizedKey !== "change" &&
+      prevData.nickname === nickname &&
+      prevData.profileImage.URL === image
       // prevCredentialImageKey?.resizedKey !== "change"
     ) {
       close();
       return;
     }
 
-    if (!prevData) {
-      if (
-        profiles.find(
-          (profile) =>
-            profile.category.title === selectedCategory.title &&
-            profile.name === nickname
-        )
-      ) {
-        window.alert("이미 존재하는 프로필입니다.");
-        return;
-      }
+    //데이터 검증 -> 동일 프로필 중복 검사
+    if (
+      profiles.find(
+        (profile) =>
+          profile.category.title === selectedCategory.title &&
+          profile.nickname === nickname &&
+          (!prevData || prevData._id !== profile._id)
+      )
+    ) {
+      window.alert("이미 존재하는 프로필입니다.");
+      return;
     }
+
     let data: AddProfileReqType = {
-      name: nickname,
+      nickname,
       category: selectedCategory._id,
     };
-
-    // if (file) {
-    //   const profileImage = await FileServices.putProfileImage(file);
-    //   if (!profileImage) {
-    //     window.alert(
-    //       `프로필 ${
-    //         prevData ? "수정" : "추가"
-    //       }에 실패했습니다. 다시 시도해주세요.`
-    //     );
-    //     setLoading(false);
-    //     return;
-    //   }
-    //   data = {
-    //     ...data,
-    //     profileImage,
-    //   };
-    // }
-
     // if (credentialFile) {
     //   const credentialImage = await FileServices.putPostImage(credentialFile);
     //   if (!credentialImage) {
@@ -233,40 +206,33 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
     // }
     // let profile: ProfileType | null = null;
     if (prevData) {
-      // const modifyData = {
-      //   ...prevData,
-      //   ...data,
-      // };
+      let updateData: UpdateProfileReqType = { ...data };
+      if (file || file === null) {
+        updateData = {
+          ...data,
+          profileImage: file,
+        };
+      }
       dispatch(
         updateProfileThunk({
           profileId: prevData._id,
-          newProfileName: nickname,
+          profileData: new TypedForm<UpdateProfileReqType>(updateData),
         })
       );
     } else {
-      dispatch(addProfileThunk(data));
+      if (file) {
+        data = {
+          ...data,
+          profileImage: file,
+        };
+      }
+      dispatch(addProfileThunk(new TypedForm<AddProfileReqType>(data)));
     }
-    // if (!profile) {
-    //   window.alert(
-    //     `프로필 ${
-    //       prevData ? "수정" : "추가"
-    //     }에 실패했습니다. 다시 시도해주세요.`
-    //   );
-    //   setLoading(false);
-    //   return;
-    // }
-    // if (prevData && prevData.profileImage) {
-    //   FileServices.removeImage(prevData.profileImage);
-    // }
-    // if (prevData && prevData.credential) {
-    //   FileServices.removeImage(prevData.credential);
-    // }
-    // if (prevData) {
-    //   updateProfileHandler(profile, "modify");
-    // } else {
-    //   updateProfileHandler(profile, "add");
-    // }
-  }, [close, dispatch, prevData, profiles, selectedCategory]);
+  }, [close, dispatch, file, image, prevData, profiles, selectedCategory]);
+
+  const testSubmit: FormEventHandler = useCallback((event) => {
+    event.preventDefault();
+  }, []);
 
   useEffect(() => {
     if (status === "success") {
@@ -301,7 +267,60 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
         <div className={styles.form}>
           <AddCategory show={addCategoryShow} close={addCategoryShowClose} />
         </div>
-        <div className={styles.form}>
+        <form encType="multipart/form-data" onSubmit={testSubmit}>
+          <div className={styles.form}>
+            <label className={styles.form_label}>게임: </label>
+            <DefaultTextInput
+              disabled
+              value={
+                categories.length
+                  ? selectedCategory
+                    ? selectedCategory.title
+                    : "게임을 선택해주세요."
+                  : "게임을 추가해주세요."
+              }
+              className={styles.input}
+              name="category"
+            />
+            <CategorySelector
+              onSelect={select}
+              size="sm"
+              categories={categories}
+            />
+          </div>
+          <div className={styles.form}>
+            <label className={styles.form_label}>프로필 이미지:</label>
+            <img
+              src={image ? image : "/default_profile.png"}
+              alt="added_profile"
+              className={styles.form_file_img}
+            />
+            <ImageFileInputButton
+              onImageFileInput={addImage}
+              multiple={false}
+              color="blue"
+            />
+            <DefaultButton
+              onClick={removeImage}
+              size="sq_md"
+              className={styles.margin_left}
+              color="blue"
+            >
+              <BsTrash />
+            </DefaultButton>
+          </div>
+          <div className={styles.form}>
+            <label className={styles.form_label}>닉네임: </label>
+            <DefaultTextInput
+              ref={nicknameRef}
+              placeholder="닉네임을 입력해주세요"
+              className={styles.input}
+              name="nickname"
+            />
+          </div>
+        </form>
+
+        {/* <div className={styles.form}>
           <label className={styles.form_label}>게임: </label>
           <DefaultTextInput
             disabled
@@ -319,16 +338,16 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
             size="sm"
             categories={categories}
           />
-        </div>
-        <div className={styles.form}>
+        </div> */}
+        {/* <div className={styles.form}>
           <label className={styles.form_label}>프로필 이미지:</label>
           <img
             // src={image ? image : "/default_profile.png"}
             src="/default_profile.png"
             alt="added_profile"
             className={styles.form_file_img}
-          />
-          {/* <ImageFileInputButton
+          /> */}
+        {/* <ImageFileInputButton
             onImageFileInput={addImage}
             multiple={false}
             color="blue"
@@ -341,15 +360,15 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
           >
             <BsTrash />
           </DefaultButton> */}
-        </div>
-        <div className={styles.form}>
+        {/* </div> */}
+        {/* <div className={styles.form}>
           <label className={styles.form_label}>닉네임: </label>
           <DefaultTextInput
             ref={nicknameRef}
             placeholder="닉네임을 입력해주세요"
             className={styles.input}
           />
-        </div>
+        </div> */}
         {/* <div>
           <div className={styles.form}>
             <label className={`${styles.form_label} ${styles.margin_right}`}>

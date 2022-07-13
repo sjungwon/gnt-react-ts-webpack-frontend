@@ -19,6 +19,7 @@ interface PropsType {
   type?: "email" | "password" | "text";
   size?: "xl" | "lg";
   autoFocus?: true;
+  name?: string;
 }
 
 const DefaultTextInput = forwardRef<HTMLInputElement, PropsType>(
@@ -36,6 +37,7 @@ const DefaultTextInput = forwardRef<HTMLInputElement, PropsType>(
       type = "text",
       size,
       autoFocus,
+      name,
     },
     inputRef
   ) => {
@@ -55,6 +57,7 @@ const DefaultTextInput = forwardRef<HTMLInputElement, PropsType>(
         onCompositionStart={onCompositionStart}
         onCompositionEnd={onCompositionEnd}
         required={required}
+        name={name}
       />
     );
   }

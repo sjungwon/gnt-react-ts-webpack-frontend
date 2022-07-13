@@ -20,21 +20,16 @@ export default function ProfileBlock({
   size = "md",
   vertical,
 }: PropsType) {
-  // const profileImage = useProfileImage(profile.profileImage);
-
-  // const loadError = useImgLoadError();
-
   if (disableNavigate) {
     return (
       <>
         <img
-          src={"/default_profile.png"}
+          src={profile.profileImage.URL || "/default_profile.png"}
           className={`${styles.profile_img} ${vertical ? styles.vertical : ""}`}
           alt="profile"
-          // onError={loadError}
         />
         <div className={styles.profile_nickname}>
-          {profile.name}
+          {profile.nickname}
           {hideUsername ? null : (
             <span
               className={styles.profile_username}
@@ -50,7 +45,7 @@ export default function ProfileBlock({
     <>
       <NavLinkBlock to={`/profiles/${profile._id}`}>
         <img
-          src={"/default_profile.png"}
+          src={profile.profileImage.URL || "/default_profile.png"}
           className={`${styles.profile_img} ${
             size === "lg" ? styles.profile_img_lg : ""
           } ${vertical ? styles.vertical : ""}`}
@@ -64,7 +59,7 @@ export default function ProfileBlock({
             size === "lg" ? styles.profile_nickname_lg : ""
           }`}
         >
-          {profile.name}
+          {profile.nickname}
           {hideUsername ? null : (
             <span
               className={styles.profile_username}

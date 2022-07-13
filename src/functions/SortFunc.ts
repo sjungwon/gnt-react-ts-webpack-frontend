@@ -22,9 +22,9 @@ export const SortProfiles = (profiles: ProfileType[]) => {
     } else if (a.category.title > b.category.title) {
       return 1;
     } else {
-      if (a.name < b.name) {
+      if (a.nickname < b.nickname) {
         return -1;
-      } else if (a.name > b.name) {
+      } else if (a.nickname > b.nickname) {
         return 1;
       } else {
         return 0;

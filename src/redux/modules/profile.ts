@@ -5,7 +5,9 @@ import {
   deleteProfileAPI,
   getProfilesAPI,
   updateProfileAPI,
+  UpdateProfileReqType,
 } from "../../apis/profile";
+import { TypedForm } from "../../classes/TypedForm";
 import { SortProfiles } from "../../functions/SortFunc";
 
 export interface ProfileType {
@@ -18,7 +20,11 @@ export interface ProfileType {
     _id: string;
     title: string;
   };
-  name: string;
+  profileImage: {
+    URL: string;
+    Key: string;
+  };
+  nickname: string;
   createdAt: Date;
 }
 
@@ -32,7 +38,7 @@ export const getMyProfilesThunk = createAsyncThunk(
 
 export const addProfileThunk = createAsyncThunk(
   "profile/add",
-  async (profileData: AddProfileReqType) => {
+  async (profileData: TypedForm<AddProfileReqType>) => {
     const response = await addProfileAPI(profileData);
     return response.data;
   }
@@ -40,10 +46,13 @@ export const addProfileThunk = createAsyncThunk(
 
 export const updateProfileThunk = createAsyncThunk(
   "profile/update",
-  async (updateData: { profileId: string; newProfileName: string }) => {
+  async (updateData: {
+    profileId: string;
+    profileData: TypedForm<UpdateProfileReqType>;
+  }) => {
     const response = await updateProfileAPI(
       updateData.profileId,
-      updateData.newProfileName
+      updateData.profileData
     );
     return response.data;
   }
