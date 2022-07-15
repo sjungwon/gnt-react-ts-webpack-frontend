@@ -1,24 +1,37 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  ChangeEventHandler,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Card } from "react-bootstrap";
 import styles from "./scss/AddPostElement.module.scss";
-import ProfileSelector from "../atoms/ProfileSelector";
 import DefaultButton from "../atoms/DefaultButton";
 import { MdOutlinePhotoSizeSelectActual } from "react-icons/md";
 import DefaultTextarea from "../atoms/DefaultTextarea";
 import LoadingBlock from "../atoms/LoadingBlock";
-// import AddPostImageModal from "./AddPostImageModal";
-// import ImageSlide from "./ImageSlide";
-import ProfileList from "./ProfileList";
-
-interface PostType {
-  text: string;
-}
+import { ProfileType } from "../../redux/modules/profile";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../redux/store";
+import ProfileSelector from "../atoms/ProfileSelector";
+import UserProfileList from "./UserProfileList";
+import ImageFileInputButton from "../atoms/ImageFileInputButton";
+import { BsTrash } from "react-icons/bs";
+import ImageSlide, { ImageType } from "./ImageSlide";
+import { TypedForm } from "../../classes/TypedForm";
+import { AddPostReqType, PostAPI, UpdatePostReqType } from "../../apis/post";
+import {
+  addPostThunk,
+  PostType,
+  updatePostThunk,
+} from "../../redux/modules/post";
 
 interface Props {
   prevData?: {
     setMode: (mode: "" | "modify") => void;
     postData: PostType;
-    imageURLs: string[];
   };
 }
 
@@ -44,37 +57,41 @@ export default function AddPostElement({ prevData }: Props) {
     setShow(false);
   }, []);
 
-  const [currentProfile, setCurrentProfile] = useState<Profile>(defaultProfile);
-  const [filteredProfile, setFilteredProfile] =
-    useState<Profile[]>(filteredProfileArr);
-  const profileImage = useProfileImage(currentProfile.profileImage);
-  const loadError = useImgLoadError();
+  const username = useSelector((state: RootState) => state.auth.username);
+  const profiles = useSelector((state: RootState) => state.profile.profiles);
+  const currentCategoryTitle = useSelector(
+    (state: RootState) => state.category.currentCategoryTitle
+  );
+
+  const [filteredProfiles, setFilteredProfiles] = useState<ProfileType[]>([]);
+  const [currentProfile, setCurrentProfile] = useState<
+    ProfileType | undefined
+  >();
 
   //prevData가 있으면 해당 데이터의 프로필로 현재 프로필 변경, 없으면 첫번째 프로필로 설정
   useEffect(() => {
     if (prevData) {
-      const filtered = profileArr.filter(
-        (profile) => profile.game === prevData?.postData.game
+      const filteredProfileTmp = profiles.filter(
+        (profile) => profile.category.title === prevData.postData.category.title
       );
-      setFilteredProfile(filtered);
-      const finded = profileArr.find(
-        (profile) => profile.id === prevData?.postData.profileId
+      setFilteredProfiles(filteredProfileTmp);
+      const finded = filteredProfileTmp.find(
+        (profile) => profile._id === prevData?.postData.profile._id
       );
-      setCurrentProfile(finded ? finded : filtered[0]);
-
+      setCurrentProfile(finded ? finded : undefined);
       return;
     }
-    setCurrentProfile(defaultProfile);
-  }, [defaultProfile, filteredProfileArr, prevData, profileArr]);
-
-  const select = useCallback(
-    (eventKey: string | null) => {
-      if (eventKey !== null && filteredProfileArr.length) {
-        setCurrentProfile(filteredProfileArr[parseInt(eventKey)]);
-      }
-    },
-    [filteredProfileArr, setCurrentProfile]
-  );
+    const filteredProfileTmp =
+      currentCategoryTitle === "all"
+        ? profiles
+        : profiles.filter(
+            (profile) => profile.category.title === currentCategoryTitle
+          );
+    setFilteredProfiles(filteredProfileTmp);
+    setCurrentProfile(
+      filteredProfileTmp.length ? filteredProfileTmp[0] : undefined
+    );
+  }, [currentCategoryTitle, prevData, profiles]);
 
   return (
     <Card className={styles.card}>
@@ -84,25 +101,23 @@ export default function AddPostElement({ prevData }: Props) {
             <Card.Title className={styles.card_header_title}>
               유저 메뉴
             </Card.Title>
-            <ProfileList username={username} profileArr={filteredProfileArr} />
+            <UserProfileList />
           </Card.Header>
         )}
         <Card.Body>
           <div className={styles.card_body}>
             <img
-              src={profileImage ? profileImage : "/default_profile.png"}
+              src={currentProfile?.profileImage.URL || "/default_profile.png"}
               className={styles.card_body_img}
               alt="profile"
-              onError={loadError}
             />
             <Card.Title className={styles.card_body_title}>
-              {currentProfile.nickname ? currentProfile.nickname : ""}
+              {currentProfile ? currentProfile.nickname : ""}
             </Card.Title>
             <div className={styles.card_body_right}>
               <ProfileSelector
-                profileArr={prevData ? filteredProfile : filteredProfileArr}
                 size="sm"
-                onSelect={select}
+                setCurrentProfile={setCurrentProfile}
               />
             </div>
           </div>
@@ -111,7 +126,7 @@ export default function AddPostElement({ prevData }: Props) {
               size="xl"
               onClick={showHandler}
               className={styles.card_body_btn}
-              disabled={!username || !filteredProfileArr.length}
+              disabled={!username || !filteredProfiles.length}
             >
               포스트 작성
             </DefaultButton>
@@ -131,30 +146,16 @@ export default function AddPostElement({ prevData }: Props) {
 interface FormPropsType {
   show: boolean;
   close: () => void;
-  currentProfile: Profile;
+  currentProfile?: ProfileType;
   prevData?: {
     setMode: (mode: "" | "modify") => void;
-    postData: Post;
-    imageURLs: string[];
+    postData: PostType;
   };
 }
 
 function PostForm({ show, close, currentProfile, prevData }: FormPropsType) {
-  const { modifyPost, addPost } = useContext(PostListContext);
   //기본 form 데이터 -> 이미지, 텍스트, 프로필
-  const [images, setImages] = useState<string[]>([]);
-  const [files, setFiles] = useState<File[]>([]);
   const textRef = useRef<HTMLTextAreaElement>(null);
-
-  //사진 모달 관련 데이터, 함수
-  const [mdShow, setMdShow] = useState<boolean>(false);
-  const openMd = () => {
-    setMdShow(true);
-  };
-
-  const closeMd = () => {
-    setMdShow(false);
-  };
 
   const cancleModify = useCallback(() => {
     if (prevData) {
@@ -163,130 +164,100 @@ function PostForm({ show, close, currentProfile, prevData }: FormPropsType) {
     close();
   }, [close, prevData]);
 
-  const [postImageKeys, setPostImageKeys] = useState<ImageKeys[]>([]);
+  // index가 있어야 slide에서 현재 보고 있는 이미지 위치를 가져올 수 있음
+  const [images, setImages] = useState<ImageType[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
+  const [index, setIndex] = useState<number>(0);
 
+  //수정인 경우 이미지 설정
   useEffect(() => {
     if (prevData) {
-      setPostImageKeys(prevData.postData.images);
-      if (prevData.imageURLs.length) {
-        setImages(prevData.imageURLs);
+      if (prevData.postData.postImages.length) {
+        const imageURLs = prevData.postData.postImages.map((image) => image);
+        setImages(imageURLs);
       }
     }
   }, [prevData]);
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const AddImages: ChangeEventHandler<HTMLInputElement> = (event) => {
+    const inputFiles = event.target.files;
+    if (inputFiles) {
+      const fileArray = Array.from(inputFiles);
+      setFiles((prev) => [...prev, ...fileArray]);
+      const ImageObj = fileArray.map<ImageType>((file) => ({
+        URL: URL.createObjectURL(file),
+        Key: file.name,
+      }));
+      setImages((prev) => [...prev, ...ImageObj]);
+    }
+  };
+
+  const [removedImages, setRemovedImages] = useState<ImageType[]>([]);
+
+  //이미지 제거 -> 수정인 경우엔 이전 이미지 제거
+  //새로 추가된 이미지면 그냥 제거, 원래 있던 이미지면 제거된 이미지로 데이터 전송
+  const removeImages = () => {
+    const removeImage = images[index];
+    //새로 추가된 이미지가 아닌 경우
+    if (!files.find((file) => file.name === removeImage.Key)) {
+      setRemovedImages((prev) => [...prev, removeImage]);
+    }
+    setImages((prevImages) => prevImages.filter((elem, i) => i !== index));
+    setFiles((prevFiles) => prevFiles.filter((elem, i) => i !== index));
+    setIndex((index) => {
+      if (index > 0) {
+        return index - 1;
+      } else {
+        return index;
+      }
+    });
+  };
+
+  const dispatch = useDispatch<AppDispatch>();
+  const status = useSelector((state: RootState) => state.post.status);
 
   //제출 버튼 눌렀을 때 사용할 함수
-  const submit = useCallback(async () => {
+  const submit = async () => {
     const text = textRef?.current?.value.trim();
-    if (text || images.length) {
-      setLoading(true);
-      const data = {
+    // if (text || images.length) {
+    if ((text || images.length) && currentProfile) {
+      let data: AddPostReqType = {
         text: text ? text : "",
-        profile: currentProfile,
-        game: currentProfile.game,
+        profile: currentProfile._id,
+        category: currentProfile.category._id,
       };
-      //포스트 수정
+      if (files.length) {
+        data = {
+          ...data,
+          newImages: files,
+        };
+      }
       if (prevData) {
-        let newData: Post = {
-          ...prevData.postData,
+        let updateData: UpdatePostReqType = {
           ...data,
+          _id: prevData.postData._id,
         };
-        if (files) {
-          const imageKeys = await Promise.all(
-            files.map(async (file) => {
-              const key = await FileServices.putPostImage(file);
-              return key;
-            })
-          );
-
-          if (imageKeys.includes(null)) {
-            window.alert(
-              "포스트를 수정중에 오류가 발생했습니다. 다시 시도해주세요."
-            );
-            setLoading(false);
-            return;
-          }
-
-          newData = {
-            ...newData,
-            images: [...postImageKeys, ...(imageKeys as addImageResData[])],
+        if (removedImages.length) {
+          updateData = {
+            ...updateData,
+            removedImages: removedImages,
           };
         }
-        const success = await PostServices.updatePost(newData);
-        if (!success) {
-          window.alert(
-            "포스트를 수정하는데 오류가 발생했습니다. 다시 시도해주세요."
-          );
-          setLoading(false);
-          return;
-        }
-
-        modifyPost(newData);
-        prevData.setMode("");
+        const formData = new TypedForm<UpdatePostReqType>(updateData);
+        dispatch(updatePostThunk(formData));
       } else {
-        //post 추가
-        let newData: AddPostReqData = {
-          ...data,
-          profileId: data.profile.id,
-          images: [],
-        };
-        if (files) {
-          const imageKey = await Promise.all(
-            files.map(async (file) => {
-              const key = await FileServices.putPostImage(file);
-              return key;
-            })
-          );
-          if (imageKey.includes(null)) {
-            Promise.all(
-              imageKey.map(async (keys) => {
-                if (keys) {
-                  await FileServices.removeImage(keys);
-                }
-              })
-            );
-            window.alert(
-              "포스트를 추가하는데 오류가 발생했습니다. 다시 시도해주세요."
-            );
-            setLoading(false);
-            return;
-          }
-          newData = {
-            ...newData,
-            images: imageKey as addImageResData[],
-          };
-        }
-        const post = await PostServices.addPost(newData);
-        if (!post) {
-          window.alert(
-            "포스트를 추가하는데 오류가 발생했습니다. 다시 시도해주세요."
-          );
-          setLoading(false);
-          return;
-        }
-        addPost(post);
+        const formData = new TypedForm<AddPostReqType>(data);
+        dispatch(addPostThunk(formData));
       }
-      setLoading(false);
-      setImages([]);
-      setFiles([]);
-      if (textRef.current) {
-        textRef.current.value = "";
-      }
-      close();
+      // setImages([]);
+      // setFiles([]);
+      // if (textRef.current) {
+      //   textRef.current.value = "";
+      // }
     }
-  }, [
-    addPost,
-    close,
-    currentProfile,
-    files,
-    images.length,
-    modifyPost,
-    postImageKeys,
-    prevData,
-  ]);
+  };
 
-  if (!show) {
+  if (!show || !currentProfile) {
     return null;
   }
 
@@ -294,22 +265,16 @@ function PostForm({ show, close, currentProfile, prevData }: FormPropsType) {
     <>
       <Card.Footer className={styles.card_footer}>
         <div className={styles.card_footer_btns}>
-          <DefaultButton size="sq_md" onClick={openMd}>
-            <MdOutlinePhotoSizeSelectActual />
+          <ImageFileInputButton onImageFileInput={AddImages} multiple />
+          <DefaultButton onClick={removeImages} size="sq_md">
+            <BsTrash />
           </DefaultButton>
-          <AddPostImageModal
-            mdShow={mdShow}
-            closeMd={closeMd}
-            postImages={images}
-            setPostImage={setImages}
-            setPostFiles={setFiles}
-            postImageKeys={postImageKeys}
-            setPostImageKeys={setPostImageKeys}
-          />
         </div>
-        {images.length ? <ImageSlide images={images} /> : null}
+        {images.length ? (
+          <ImageSlide images={images} index={index} setIndex={setIndex} />
+        ) : null}
         <DefaultTextarea
-          defaultValue={prevData?.postData.text}
+          defaultValue={prevData?.postData.text || ""}
           ref={textRef}
           size="lg"
         />
@@ -317,12 +282,16 @@ function PostForm({ show, close, currentProfile, prevData }: FormPropsType) {
           <DefaultButton
             onClick={submit}
             size="md"
-            disabled={loading}
+            disabled={status === "pending"}
             className={styles.btn_margin}
           >
-            <LoadingBlock loading={loading}>등록</LoadingBlock>
+            <LoadingBlock loading={status === "pending"}>등록</LoadingBlock>
           </DefaultButton>
-          <DefaultButton onClick={cancleModify} size="md" disabled={loading}>
+          <DefaultButton
+            onClick={cancleModify}
+            size="md"
+            disabled={status === "pending"}
+          >
             취소
           </DefaultButton>
         </div>

@@ -1,16 +1,15 @@
 @import "../../../scss/variables";
 
-
-div.card{
+div.card {
   max-width: 28rem;
   margin: 2.5rem auto;
   margin-top: 0;
   box-shadow: $card-box-shadow-bottom;
-  border-radius: .5rem;
+  border-radius: 0.5rem;
   border: 1px solid $primary-default-border;
 }
 
-.disabled{
+.disabled {
   width: 100%;
   height: 100%;
   background-color: rgba(231, 231, 231, 0.174);
@@ -18,58 +17,57 @@ div.card{
   pointer-events: none;
 }
 
-div.card_header{
+div.card_header {
   background-color: rgba(255, 255, 255, 0);
   border-bottom: 1px solid $primary-default-border;
-  .card_header_title{
+  .card_header_title {
     text-align: center;
-    font-size: .95rem;
+    font-size: 0.95rem;
   }
 }
 
-div.card_body{
+div.card_body {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border: none;
-  .add_post{
+  .add_post {
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  .card_body_img{
+  .card_body_img {
     height: 2.2rem;
     width: 2.2rem;
     border-radius: 50%;
-    object-fit:cover;
+    object-fit: cover;
   }
-  .card_body_title{
-    font-size: .95rem;
+  .card_body_title {
+    font-size: 0.95rem;
     font-weight: 500;
     margin: 0;
   }
-  .card_body_right{
+  .card_body_right {
     display: flex;
   }
 }
-.card_body_btn{
+.card_body_btn {
   height: 1.5rem;
-  font-size: .9rem;
+  font-size: 0.9rem;
   margin-top: 1rem;
 }
 
-.modal_body_file{
+.modal_body_file {
   display: none;
 }
 
-
-.modal_body_btns{
+.modal_body_btns {
   width: 100%;
   display: flex;
   justify-content: space-between;
 }
 
-.modal_body_btn{
+.modal_body_btn {
   width: 2rem;
   height: 2rem;
   display: flex;
@@ -78,34 +76,34 @@ div.card_body{
   background-color: $primary-blue;
   border: 1px solid $primary-blue;
   outline: none;
-  border-radius: .25rem;
+  border-radius: 0.25rem;
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
-  &:hover{
+  &:hover {
     background-color: $primary-blue-hover;
   }
-  &:active{
+  &:active {
     box-shadow: $primary-blue-box-shadow;
   }
 }
 
-.card_footer{
+.card_footer {
   border-top: 1px solid $primary-default-border;
   background-color: rgba(255, 255, 255, 0);
 }
 
-.card_footer_btns{
+.card_footer_btns {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: .5rem;
+  padding: 0.75rem 0;
 }
 
-.card_footer_bottom_btns{
+.card_footer_bottom_btns {
   display: flex;
 }
 
-.btn_margin{
-  margin-right: .5rem;
+.btn_margin {
+  margin-right: 0.5rem;
 }
