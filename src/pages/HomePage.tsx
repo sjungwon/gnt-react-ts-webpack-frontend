@@ -25,6 +25,10 @@ export default function HomePage() {
     });
   }, [scrollLock, scrollRelease]);
 
+  const currentCategoryTitle = useSelector(
+    (state: RootState) => state.category.currentCategoryTitle
+  );
+
   return (
     <div>
       <NavBar showCategoryHandler={showCategoryHandler} />
@@ -32,7 +36,7 @@ export default function HomePage() {
       <UserInfoBar />
       <UserCard username={"heeho3"} />
       <ProfileCard searchProfile={"62cdc977a541e13dec5f70ae"} />
-      <AddPostElement />
+      <AddPostElement category={currentCategoryTitle} />
       <PostList />
     </div>
   );

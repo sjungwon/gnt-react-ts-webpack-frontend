@@ -5,7 +5,11 @@ import styles from "./scss/ProfileBlock.module.scss";
 
 interface PropsType {
   children?: ReactNode;
-  profile: ProfileType;
+  profile: ProfileType | null;
+  user?: {
+    username: string;
+    _id: string;
+  };
   hideUsername?: true;
   disableNavigate?: true;
   size?: "md" | "lg";
@@ -14,21 +18,57 @@ interface PropsType {
 
 export default function ProfileBlock({
   profile,
+  user,
   hideUsername,
   disableNavigate,
   children,
   size = "md",
   vertical,
 }: PropsType) {
+  if (!profile) {
+    if (!user) {
+      return null;
+    }
+    return (
+      <>
+        <img
+          src={"/default_profile.png"}
+          className={`${styles.profile_img} ${
+            size === "lg" ? styles.profile_img_lg : ""
+          } ${vertical ? styles.vertical : ""}`}
+          alt="profile"
+        />
+        <div
+          className={`${styles.profile_nickname} ${
+            size === "lg" ? styles.profile_nickname_lg : ""
+          }`}
+        >
+          {"삭제된 프로필"}
+          {hideUsername ? null : (
+            <span
+              className={styles.profile_username}
+            >{` (${user.username})`}</span>
+          )}
+          {children}
+        </div>
+      </>
+    );
+  }
   if (disableNavigate) {
     return (
       <>
         <img
           src={profile.profileImage.URL || "/default_profile.png"}
-          className={`${styles.profile_img} ${vertical ? styles.vertical : ""}`}
+          className={`${styles.profile_img} ${
+            size === "lg" ? styles.profile_img_lg : ""
+          } ${vertical ? styles.vertical : ""}`}
           alt="profile"
         />
-        <div className={styles.profile_nickname}>
+        <div
+          className={`${styles.profile_nickname} ${
+            size === "lg" ? styles.profile_nickname_lg : ""
+          }`}
+        >
           {profile.nickname}
           {hideUsername ? null : (
             <span

@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, Dropdown } from "react-bootstrap";
 import styles from "./scss/PostElement.module.scss";
 import {
@@ -10,15 +10,23 @@ import {
 import ImageSlide from "./ImageSlide";
 import RemoveConfirmModal from "./RemoveConfirmModal";
 import AddPostElement from "./AddPostElement";
-// import CommentList from "./CommentList";
 import { NavLink } from "react-router-dom";
 import DefaultButton from "../atoms/DefaultButton";
-// import CheckUserBlock from "../atoms/CheckUserBlock";
-// import CommentsButton from "../atoms/CommentsButton";
 import ProfileBlock from "./ProfileBlock";
-import { deletePostThunk, PostType } from "../../redux/modules/post";
+import {
+  clearDeletePostStatus,
+  clearModifyContentId,
+  deletePostThunk,
+  handleDislikeThunk,
+  handleLikeThunk,
+  PostType,
+  setModifyContentId,
+} from "../../redux/modules/post";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
+import CommentList from "./CommentList";
+import CommentsButton from "../atoms/CommentsButton";
+import { GoTriangleUp, GoTriangleDown } from "react-icons/go";
 
 interface PropsType {
   post: PostType;
@@ -26,67 +34,62 @@ interface PropsType {
 
 export default function PostElement({ post }: PropsType) {
   //댓글 보기 관련 함수
-  // const [showComment, setShowComment] = useState<boolean>(false);
+  const [showComment, setShowComment] = useState<boolean>(false);
   const [scrollHeight, setScrollHeight] = useState<number>(0);
   const username = useSelector((state: RootState) => state.auth.username);
+  const userId = useSelector((state: RootState) => state.auth.userId);
+  const dispatch = useDispatch<AppDispatch>();
 
-  // const commentHandler = useCallback(() => {
-  //   setShowComment((prev) => {
-  //     if (!prev) {
-  //       setScrollHeight(window.scrollY);
-  //     } else {
-  //       setTimeout(() => {
-  //         window.scrollTo({ top: scrollHeight, behavior: "auto" });
-  //       });
-  //     }
-  //     return !prev;
-  //   });
-  // }, [scrollHeight]);
+  const commentHandler = useCallback(() => {
+    setShowComment((prev) => {
+      if (!prev) {
+        setScrollHeight(window.scrollY);
+      } else {
+        dispatch(clearModifyContentId());
+        setTimeout(() => {
+          window.scrollTo({ top: scrollHeight, behavior: "auto" });
+        });
+      }
+      return !prev;
+    });
+  }, [dispatch, scrollHeight]);
 
-  // const childShowCommentHandler = useCallback(
-  //   (show: boolean) => {
-  //     if (show) {
-  //       setScrollHeight(window.scrollY);
-  //     } else {
-  //       setTimeout(() => {
-  //         window.scrollTo({ top: scrollHeight, behavior: "auto" });
-  //       });
-  //     }
-  //     setShowComment(show);
-  //   },
-  //   [scrollHeight]
-  // );
+  //좋아요, 싫어요 클릭 함수
+  const postLike = useCallback(() => {
+    if (!username) {
+      window.alert("로그인이 필요합니다.");
+      return;
+    }
+    dispatch(handleLikeThunk(post._id));
+  }, [dispatch, post._id, username]);
 
-  // //좋아요, 싫어요 클릭 함수
-  // const postLike = useCallback(() => {
-  //   const postId = `${post.username}/${post.date}`;
-  //   likePost(postId);
-  // }, [post, likePost]);
-
-  // const postDislike = useCallback(() => {
-  //   const postId = `${post.username}/${post.date}`;
-  //   dislikePost(postId);
-  // }, [post, dislikePost]);
+  const postDislike = useCallback(() => {
+    if (!username) {
+      window.alert("로그인이 필요합니다.");
+      return;
+    }
+    dispatch(handleDislikeThunk(post._id));
+  }, [username, dispatch, post._id]);
 
   //포스트 제거, 제거 확인 모달 관련 데이터
-
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const handleRemoveModalClose = useCallback(() => {
     setShowRemoveModal(false);
   }, []);
   const handleRemoveModalOpen = useCallback(() => {
+    dispatch(clearDeletePostStatus());
     setShowRemoveModal(true);
-  }, []);
+  }, [dispatch]);
 
-  const dispatch = useDispatch<AppDispatch>();
-  const [removeLoading, setRemoveLoading] = useState<boolean>(false);
+  const deletePostStatus = useSelector(
+    (state: RootState) => state.post.deletePostStatus
+  );
+
   const sendRemovePost = useCallback(async () => {
     dispatch(deletePostThunk(post._id));
-    handleRemoveModalClose();
-  }, [dispatch, handleRemoveModalClose, post._id]);
+  }, [dispatch, post._id]);
 
   const profiles = useSelector((state: RootState) => state.profile.profiles);
-  const [mode, setMode] = useState<"" | "modify">("");
   //포스트 관리 함수 -> 수정, 제거 선택
   const select = useCallback(
     (eventKey: any) => {
@@ -100,14 +103,14 @@ export default function PostElement({ post }: PropsType) {
           );
           return;
         }
-        setMode("modify");
+        dispatch(setModifyContentId(post._id));
       }
       if (eventKey === "2") {
         handleRemoveModalOpen();
         return;
       }
     },
-    [handleRemoveModalOpen, post.category.title, profiles]
+    [dispatch, handleRemoveModalOpen, post._id, post.category.title, profiles]
   );
 
   //텍스트 제한 관련 데이터
@@ -147,16 +150,13 @@ export default function PostElement({ post }: PropsType) {
     }
   }, []);
 
+  const modifyContentId = useSelector(
+    (state: RootState) => state.post.modifyContentId
+  );
+
   //렌더
-  if (mode === "modify") {
-    return (
-      <AddPostElement
-        prevData={{
-          setMode,
-          postData: post,
-        }}
-      />
-    );
+  if (post._id === modifyContentId) {
+    return <AddPostElement category={post.category.title} prevData={post} />;
   }
 
   return (
@@ -171,7 +171,11 @@ export default function PostElement({ post }: PropsType) {
           </NavLink>
         </Card.Title>
         <div className={styles.card_header_profile}>
-          <ProfileBlock profile={post.profile} size="lg">
+          <ProfileBlock
+            profile={post.profile}
+            user={post.profile ? undefined : post.user}
+            size="lg"
+          >
             <Card.Subtitle className={styles.card_header_subtitle}>
               {post.createdAt ? new Date(post.createdAt).toLocaleString() : ""}
             </Card.Subtitle>
@@ -213,15 +217,15 @@ export default function PostElement({ post }: PropsType) {
             {textMore ? " 접기" : " 더보기"}
           </p>
         ) : null}
-        {/* <div className={styles.card_body_buttons}>
+        <div className={styles.card_body_buttons}>
           <DefaultButton onClick={postLike} size="lg">
-            {post.likes.includes(username) ? (
+            {post.likeUsers.includes(userId) ? (
               <BsHandThumbsUpFill className={styles.btn_icon} />
             ) : (
               <BsHandThumbsUp />
             )}
             <p className={styles.btn_text}>좋아요</p>
-            <p className={styles.btn_badge}>{post.likes.length}</p>
+            <p className={styles.btn_badge}>{post.likes}</p>
           </DefaultButton>
           <CommentsButton
             onClick={commentHandler}
@@ -229,34 +233,57 @@ export default function PostElement({ post }: PropsType) {
             active={showComment}
           ></CommentsButton>
           <DefaultButton onClick={postDislike} size="lg">
-            {post.dislikes.includes(username) ? (
+            {post.dislikeUsers.includes(userId) ? (
               <BsHandThumbsDownFill className={styles.btn_icon} />
             ) : (
               <BsHandThumbsDown />
             )}
             <p className={styles.btn_text}>싫어요</p>
-            <p className={styles.btn_badge}>{post.dislikes.length}</p>
+            <p className={styles.btn_badge}>{post.dislikes}</p>
           </DefaultButton>
-        </div> */}
+        </div>
       </Card.Body>
-      {/* <Card.Footer
-        className={`${styles.card_footer} ${
-          post.comments.length ? "" : styles.card_footer_no_border
-        }`}
+      <Card.Footer
+        // className={`${styles.card_footer} ${
+        //   post.comments.length ? "" : styles.card_footer_no_border
+        // }`}
+        className={styles.card_footer}
       >
         <CommentList
-          game={post.game}
-          postId={`${post.username}/${post.date}`}
+          postId={post._id}
           showComment={showComment}
-          setShowComment={childShowCommentHandler}
           comments={post.comments}
-          commentsLastEvaluatedKey={post.commentsLastEvaluatedKey}
+          commentsCount={post.commentsCount}
+          category={post.category.title}
         />
-      </Card.Footer> */}
+        {/* {comments.length > 1 ||
+          (comments.length && comments[0].subcomments.length) ? (
+            <div className={styles.direct} onClick={openComments}>
+              <div className={styles.direct_icon}>
+                <GoTriangleDown />
+              </div>
+            </div>
+          ) : (
+            <div className={styles.blank}></div>
+          )} */}
+        {showComment ? (
+          <div className={styles.direct} onClick={commentHandler}>
+            <div className={styles.direct_icon}>
+              <GoTriangleUp />
+            </div>
+          </div>
+        ) : (
+          <div className={styles.direct} onClick={commentHandler}>
+            <div className={styles.direct_icon}>
+              <GoTriangleDown />
+            </div>
+          </div>
+        )}
+      </Card.Footer>
       <RemoveConfirmModal
         close={handleRemoveModalClose}
         show={showRemoveModal}
-        loading={removeLoading}
+        loading={deletePostStatus === "pending"}
         remove={sendRemovePost}
       />
     </Card>

@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   addProfileAPI,
   AddProfileReqType,
@@ -25,7 +25,7 @@ export interface ProfileType {
     Key: string;
   };
   nickname: string;
-  createdAt?: string;
+  createdAt: string;
 }
 
 export const getMyProfilesThunk = createAsyncThunk(
@@ -69,31 +69,39 @@ export const deleteProfileThunk = createAsyncThunk(
 interface ProfileState {
   status: "idle" | "pending" | "success" | "failed";
   profiles: ProfileType[];
-  modifyStatus: {
-    add: "idle" | "pending" | "success" | "failed";
-    [key: string]: "idle" | "pending" | "success" | "failed";
-  };
-  modifyProfileId: string;
+  modifyProfileStatus: "idle" | "pending" | "success" | "failed";
+  initialProfile: ProfileType;
 }
 
 const initialState: ProfileState = {
   status: "idle",
   profiles: [],
-  modifyStatus: {
-    add: "idle",
+  modifyProfileStatus: "idle",
+  initialProfile: {
+    _id: "",
+    user: {
+      _id: "",
+      username: "",
+    },
+    category: {
+      _id: "",
+      title: "",
+    },
+    profileImage: {
+      URL: "",
+      Key: "",
+    },
+    nickname: "",
+    createdAt: "",
   },
-  modifyProfileId: "",
 };
 
 const profileSlice = createSlice({
   name: "profile",
   initialState,
   reducers: {
-    setModifyId: (state: ProfileState, action: PayloadAction<string>) => {
-      state.modifyProfileId = action.payload;
-    },
-    clearModifyId: (state: ProfileState) => {
-      state.modifyProfileId = "";
+    clearModifyProfileStatus: (state: ProfileState) => {
+      state.modifyProfileStatus = "idle";
     },
   },
   extraReducers(builder) {
@@ -109,15 +117,10 @@ const profileSlice = createSlice({
         state.status = "failed";
       })
       .addCase(addProfileThunk.pending, (state, action) => {
-        state.modifyStatus = {
-          add: "pending",
-        };
+        state.modifyProfileStatus = "pending";
       })
       .addCase(addProfileThunk.fulfilled, (state, action) => {
-        state.modifyStatus = {
-          add: "success",
-          [action.payload._id]: "idle",
-        };
+        state.modifyProfileStatus = "success";
         state.profiles = SortProfiles([
           ...state.profiles,
           action.payload as ProfileType,
@@ -125,14 +128,13 @@ const profileSlice = createSlice({
       })
       .addCase(addProfileThunk.rejected, (state, action) => {
         window.alert("프로필 추가에 실패했습니다. 다시 시도해주세요.");
-        state.modifyStatus.add = "failed";
+        state.modifyProfileStatus = "failed";
       })
       .addCase(updateProfileThunk.pending, (state, action) => {
-        state.modifyStatus[state.modifyProfileId] = "pending";
+        state.modifyProfileStatus = "pending";
       })
       .addCase(updateProfileThunk.fulfilled, (state, action) => {
-        state.modifyStatus[state.modifyProfileId] = "success";
-        state.modifyProfileId = "";
+        state.modifyProfileStatus = "success";
         const updatedProfileId = (action.payload as ProfileType)._id;
         state.profiles = SortProfiles(
           state.profiles.map((profile: ProfileType) => {
@@ -142,17 +144,13 @@ const profileSlice = createSlice({
       })
       .addCase(updateProfileThunk.rejected, (state, action) => {
         window.alert("프로필 수정에 실패했습니다. 다시 시도해주세요.");
-        state.modifyStatus[state.modifyProfileId] = "failed";
-        state.modifyProfileId = "";
+        state.modifyProfileStatus = "failed";
       })
       .addCase(deleteProfileThunk.pending, (state, action) => {
-        state.modifyStatus[state.modifyProfileId] = "pending";
+        state.modifyProfileStatus = "pending";
       })
       .addCase(deleteProfileThunk.fulfilled, (state, action) => {
-        const tmp = state.modifyStatus;
-        delete tmp[state.modifyProfileId];
-        state.modifyStatus = tmp;
-        state.modifyProfileId = "";
+        state.modifyProfileStatus = "success";
         const deletedProfileId = action.payload;
         state.profiles = state.profiles.filter(
           (profile: ProfileType) => profile._id !== deletedProfileId
@@ -160,12 +158,11 @@ const profileSlice = createSlice({
       })
       .addCase(deleteProfileThunk.rejected, (state) => {
         window.alert("프로필 제거에 실패했습니다. 다시 시도해주세요.");
-        state.modifyStatus[state.modifyProfileId] = "failed";
-        state.modifyProfileId = "";
+        state.modifyProfileStatus = "failed";
       });
   },
 });
 
-export const { setModifyId, clearModifyId } = profileSlice.actions;
+export const { clearModifyProfileStatus } = profileSlice.actions;
 
 export default profileSlice.reducer;

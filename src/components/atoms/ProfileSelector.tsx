@@ -8,27 +8,28 @@ import styles from "./scss/Selector.module.scss";
 interface PropsType {
   size?: "sm" | "lg";
   setCurrentProfile: (profile: ProfileType) => void;
+  category: string;
 }
 
 export default function ProfileSelector({
   size,
   setCurrentProfile,
+  category,
 }: PropsType) {
   const profiles = useSelector((state: RootState) => state.profile.profiles);
-  const currentCategoryTitle = useSelector(
-    (state: RootState) => state.category.currentCategoryTitle
-  );
 
   const [filteredProfiles, setFilteredProfiles] = useState<ProfileType[]>([]);
+
   useEffect(() => {
     const filteredProfileArr =
-      currentCategoryTitle === "all"
+      category === "all"
         ? profiles
-        : profiles.filter(
-            (profile) => profile.category.title === currentCategoryTitle
-          );
+        : profiles.filter((profile) => profile.category.title === category);
     setFilteredProfiles(filteredProfileArr);
-  }, [currentCategoryTitle, profiles]);
+    if (filteredProfileArr.length) {
+      setCurrentProfile(filteredProfileArr[0]);
+    }
+  }, [category, profiles, setCurrentProfile]);
 
   const onSelectHandler = useCallback(
     (eventKey: string | null) => {

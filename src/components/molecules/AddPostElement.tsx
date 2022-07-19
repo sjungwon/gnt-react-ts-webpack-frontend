@@ -1,7 +1,6 @@
 import {
   ChangeEventHandler,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -9,7 +8,6 @@ import {
 import { Card } from "react-bootstrap";
 import styles from "./scss/AddPostElement.module.scss";
 import DefaultButton from "../atoms/DefaultButton";
-import { MdOutlinePhotoSizeSelectActual } from "react-icons/md";
 import DefaultTextarea from "../atoms/DefaultTextarea";
 import LoadingBlock from "../atoms/LoadingBlock";
 import { ProfileType } from "../../redux/modules/profile";
@@ -21,47 +19,51 @@ import ImageFileInputButton from "../atoms/ImageFileInputButton";
 import { BsTrash } from "react-icons/bs";
 import ImageSlide, { ImageType } from "./ImageSlide";
 import { TypedForm } from "../../classes/TypedForm";
-import { AddPostReqType, PostAPI, UpdatePostReqType } from "../../apis/post";
+import { AddPostReqType, UpdatePostReqType } from "../../apis/post";
 import {
-  addPostThunk,
+  clearModifyContentId,
+  createPost,
   PostType,
-  updatePostThunk,
+  setModifyContentId,
+  updatePost,
 } from "../../redux/modules/post";
+import PostAPI from "../../apis/post";
 
 interface Props {
-  prevData?: {
-    setMode: (mode: "" | "modify") => void;
-    postData: PostType;
-  };
+  category: string;
+  prevData?: PostType;
 }
 
 //prevData에 따라 수정, 추가 상태 결정
-export default function AddPostElement({ prevData }: Props) {
-  //프로필 데이터 사용
-  // const {
-  //   username,
-  //   filteredProfileArr,
-  //   profileArr,
-  //   currentProfile: defaultProfile,
-  // } = useContext(UserDataContext);
-
+export default function AddPostElement({ category, prevData }: Props) {
   //prevData 유무에 따라 form을 바로 보여줄 지 결정
   const [show, setShow] = useState(!!prevData);
 
+  const modifyContentId = useSelector(
+    (state: RootState) => state.post.modifyContentId
+  );
+  const dispatch = useDispatch<AppDispatch>();
   //form 열고 닫는 함수
   const showHandler = useCallback(() => {
-    setShow((prev) => !prev);
-  }, []);
+    if (prevData) {
+      return;
+    }
+    if (modifyContentId !== "addPost") {
+      dispatch(setModifyContentId("addPost"));
+    } else {
+      dispatch(clearModifyContentId());
+    }
+  }, [dispatch, modifyContentId, prevData]);
 
-  const close = useCallback(() => {
-    setShow(false);
-  }, []);
+  useEffect(() => {
+    if (prevData) {
+      return;
+    }
+    setShow(modifyContentId === "addPost");
+  }, [modifyContentId, prevData]);
 
   const username = useSelector((state: RootState) => state.auth.username);
   const profiles = useSelector((state: RootState) => state.profile.profiles);
-  const currentCategoryTitle = useSelector(
-    (state: RootState) => state.category.currentCategoryTitle
-  );
 
   const [filteredProfiles, setFilteredProfiles] = useState<ProfileType[]>([]);
   const [currentProfile, setCurrentProfile] = useState<
@@ -72,26 +74,26 @@ export default function AddPostElement({ prevData }: Props) {
   useEffect(() => {
     if (prevData) {
       const filteredProfileTmp = profiles.filter(
-        (profile) => profile.category.title === prevData.postData.category.title
+        (profile) => profile.category.title === prevData.category.title
       );
       setFilteredProfiles(filteredProfileTmp);
-      const finded = filteredProfileTmp.find(
-        (profile) => profile._id === prevData?.postData.profile._id
-      );
-      setCurrentProfile(finded ? finded : undefined);
+      if (prevData.profile) {
+        const finded = filteredProfileTmp.find(
+          (profile) => profile._id === prevData.profile?._id
+        );
+        setCurrentProfile(finded ? finded : undefined);
+      }
       return;
     }
     const filteredProfileTmp =
-      currentCategoryTitle === "all"
+      category === "all"
         ? profiles
-        : profiles.filter(
-            (profile) => profile.category.title === currentCategoryTitle
-          );
+        : profiles.filter((profile) => profile.category.title === category);
     setFilteredProfiles(filteredProfileTmp);
     setCurrentProfile(
       filteredProfileTmp.length ? filteredProfileTmp[0] : undefined
     );
-  }, [currentCategoryTitle, prevData, profiles]);
+  }, [category, prevData, profiles]);
 
   return (
     <Card className={styles.card}>
@@ -118,6 +120,7 @@ export default function AddPostElement({ prevData }: Props) {
               <ProfileSelector
                 size="sm"
                 setCurrentProfile={setCurrentProfile}
+                category={category}
               />
             </div>
           </div>
@@ -134,7 +137,6 @@ export default function AddPostElement({ prevData }: Props) {
         </Card.Body>
         <PostForm
           show={show}
-          close={close}
           prevData={prevData}
           currentProfile={currentProfile}
         />
@@ -145,25 +147,13 @@ export default function AddPostElement({ prevData }: Props) {
 
 interface FormPropsType {
   show: boolean;
-  close: () => void;
   currentProfile?: ProfileType;
-  prevData?: {
-    setMode: (mode: "" | "modify") => void;
-    postData: PostType;
-  };
+  prevData?: PostType;
 }
 
-function PostForm({ show, close, currentProfile, prevData }: FormPropsType) {
+function PostForm({ show, currentProfile, prevData }: FormPropsType) {
   //기본 form 데이터 -> 이미지, 텍스트, 프로필
   const textRef = useRef<HTMLTextAreaElement>(null);
-
-  const cancleModify = useCallback(() => {
-    if (prevData) {
-      prevData.setMode("");
-    }
-    close();
-  }, [close, prevData]);
-
   // index가 있어야 slide에서 현재 보고 있는 이미지 위치를 가져올 수 있음
   const [images, setImages] = useState<ImageType[]>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -172,8 +162,8 @@ function PostForm({ show, close, currentProfile, prevData }: FormPropsType) {
   //수정인 경우 이미지 설정
   useEffect(() => {
     if (prevData) {
-      if (prevData.postData.postImages.length) {
-        const imageURLs = prevData.postData.postImages.map((image) => image);
+      if (prevData.postImages.length) {
+        const imageURLs = prevData.postImages.map((image) => image);
         setImages(imageURLs);
       }
     }
@@ -214,11 +204,11 @@ function PostForm({ show, close, currentProfile, prevData }: FormPropsType) {
   };
 
   const dispatch = useDispatch<AppDispatch>();
-  const status = useSelector((state: RootState) => state.post.status);
 
+  const [loading, setLoading] = useState<boolean>(false);
   //제출 버튼 눌렀을 때 사용할 함수
   const submit = async () => {
-    const text = textRef?.current?.value.trim();
+    const text = textRef.current?.value.trim();
     // if (text || images.length) {
     if ((text || images.length) && currentProfile) {
       let data: AddPostReqType = {
@@ -233,9 +223,10 @@ function PostForm({ show, close, currentProfile, prevData }: FormPropsType) {
         };
       }
       if (prevData) {
+        //바뀐게 없으면 그냥 닫아야함
         let updateData: UpdatePostReqType = {
           ...data,
-          _id: prevData.postData._id,
+          _id: prevData._id,
         };
         if (removedImages.length) {
           updateData = {
@@ -244,18 +235,56 @@ function PostForm({ show, close, currentProfile, prevData }: FormPropsType) {
           };
         }
         const formData = new TypedForm<UpdatePostReqType>(updateData);
-        dispatch(updatePostThunk(formData));
+        try {
+          setLoading(true);
+          const response = await PostAPI.update(formData);
+          const updatedPost = response.data;
+          dispatch(updatePost(updatedPost));
+          dispatch(clearModifyContentId());
+          setLoading(false);
+          setImages([]);
+          setFiles([]);
+          if (textRef.current) {
+            textRef.current.value = "";
+          }
+        } catch {
+          window.alert(
+            "포스트 업데이트 중에 오류가 발생했습니다. 다시 시도해주세요."
+          );
+          setLoading(false);
+        }
       } else {
         const formData = new TypedForm<AddPostReqType>(data);
-        dispatch(addPostThunk(formData));
+        try {
+          setLoading(true);
+          const response = await PostAPI.create(formData);
+          const newPost = response.data;
+          dispatch(createPost(newPost));
+          dispatch(clearModifyContentId());
+          setLoading(false);
+          setImages([]);
+          setFiles([]);
+          if (textRef.current) {
+            textRef.current.value = "";
+          }
+        } catch {
+          window.alert(
+            "포스트 추가 중에 오류가 발생했습니다. 다시 시도해주세요."
+          );
+          setLoading(false);
+        }
       }
-      // setImages([]);
-      // setFiles([]);
-      // if (textRef.current) {
-      //   textRef.current.value = "";
-      // }
     }
   };
+
+  const cancleModify = useCallback(() => {
+    dispatch(clearModifyContentId());
+    setImages([]);
+    setFiles([]);
+    if (textRef.current) {
+      textRef.current.value = "";
+    }
+  }, [dispatch]);
 
   if (!show || !currentProfile) {
     return null;
@@ -274,7 +303,7 @@ function PostForm({ show, close, currentProfile, prevData }: FormPropsType) {
           <ImageSlide images={images} index={index} setIndex={setIndex} />
         ) : null}
         <DefaultTextarea
-          defaultValue={prevData?.postData.text || ""}
+          defaultValue={prevData?.text || ""}
           ref={textRef}
           size="lg"
         />
@@ -282,16 +311,12 @@ function PostForm({ show, close, currentProfile, prevData }: FormPropsType) {
           <DefaultButton
             onClick={submit}
             size="md"
-            disabled={status === "pending"}
+            disabled={loading}
             className={styles.btn_margin}
           >
-            <LoadingBlock loading={status === "pending"}>등록</LoadingBlock>
+            <LoadingBlock loading={loading}>등록</LoadingBlock>
           </DefaultButton>
-          <DefaultButton
-            onClick={cancleModify}
-            size="md"
-            disabled={status === "pending"}
-          >
+          <DefaultButton onClick={cancleModify} size="md" disabled={loading}>
             취소
           </DefaultButton>
         </div>

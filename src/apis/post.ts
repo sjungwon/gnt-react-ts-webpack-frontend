@@ -19,31 +19,52 @@ export interface UpdatePostReqType extends PostReqType {
   removedImages?: ImageType[];
 }
 
-export class PostAPI {
+class PostAPI {
   private path: string = "/posts";
 
-  public get = () => {
-    return API.get<PostType[], AxiosResponse<PostType[]>, void>(this.path);
+  public get = (lastPostData?: string) => {
+    const path = lastPostData ? this.path + "?last=" + lastPostData : this.path;
+    return API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
   };
 
   public create = (newPost: TypedForm<AddPostReqType>) => {
-    return APIWithToken.post(this.path, newPost.data, {
-      headers: {
-        "Content-type": "multipart/form-data",
-      },
-    });
+    return APIWithToken.post<PostType, AxiosResponse<PostType>, FormData>(
+      this.path,
+      newPost.data,
+      {
+        headers: {
+          "Content-type": "multipart/form-data",
+        },
+      }
+    );
   };
 
   public update = (updatePost: TypedForm<UpdatePostReqType>) => {
-    return APIWithToken.patch(this.path, updatePost.data, {
-      headers: {
-        "Content-type": "multipart/form-data",
-      },
-    });
+    return APIWithToken.patch<PostType, AxiosResponse<PostType>, FormData>(
+      this.path,
+      updatePost.data,
+      {
+        headers: {
+          "Content-type": "multipart/form-data",
+        },
+      }
+    );
   };
 
   public delete = (postId: string) => {
     const path = this.path + "/" + postId;
     return APIWithToken.delete<void, AxiosResponse<void>, void>(path);
   };
+
+  public likePost = (postId: string) => {
+    const path = this.path + "/likes/" + postId;
+    return APIWithToken.patch<PostType, AxiosResponse<PostType>, void>(path);
+  };
+
+  public dislikePost = (postId: string) => {
+    const path = this.path + "/dislikes/" + postId;
+    return APIWithToken.patch<PostType, AxiosResponse<PostType>, void>(path);
+  };
 }
+
+export default new PostAPI();
