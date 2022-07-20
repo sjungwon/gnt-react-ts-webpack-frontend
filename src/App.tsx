@@ -29,8 +29,8 @@ export default function App(): JSX.Element {
         <BrowserRouter>
           <Routes>
             <Route path="*" element={<NotFoundPage />} />
-            <Route path="/" element={<HomePage />} />
             <Route path="/signin" element={<LoginPage />} />
+            <Route path="/" element={<HomePage />}/>
           </Routes>
         </BrowserRouter>
       </ErrorBoundary>

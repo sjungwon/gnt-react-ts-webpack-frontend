@@ -1,10 +1,4 @@
-import {
-  FormEventHandler,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Modal } from "react-bootstrap";
 import styles from "./scss/AddProfileModal.module.scss";
 import DefaultButton from "../atoms/DefaultButton";
@@ -16,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
 import {
   addProfileThunk,
+  clearModifyProfileStatus,
   ProfileType,
   updateProfileThunk,
 } from "../../redux/modules/profile";
@@ -41,9 +36,8 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
     (state: RootState) => state.category.categories
   );
   const profiles = useSelector((state: RootState) => state.profile.profiles);
-  const status = useSelector(
-    (state: RootState) =>
-      state.profile.modifyStatus[prevData ? prevData._id : "add"]
+  const modifyProfileStatus = useSelector(
+    (state: RootState) => state.profile.modifyProfileStatus
   );
 
   const dispatch = useDispatch<AppDispatch>();
@@ -230,12 +224,9 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
     }
   }, [close, dispatch, file, image, prevData, profiles, selectedCategory]);
 
-  const testSubmit: FormEventHandler = useCallback((event) => {
-    event.preventDefault();
-  }, []);
-
   useEffect(() => {
-    if (status === "success") {
+    if (modifyProfileStatus === "success") {
+      dispatch(clearModifyProfileStatus());
       close();
       if (prevData) {
         // console.log("reload");
@@ -243,7 +234,7 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
         //나중에는 reload필요한 쪽만 dispatch thunk 다시 던지면 될 듯
       }
     }
-  }, [status, close, prevData]);
+  }, [modifyProfileStatus, close, prevData, dispatch]);
 
   const [addCategoryShow, setAddCategoryShow] = useState<boolean>(false);
   const addCategoryShowOpen = useCallback(() => {
@@ -267,7 +258,7 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
         <div className={styles.form}>
           <AddCategory show={addCategoryShow} close={addCategoryShowClose} />
         </div>
-        <form encType="multipart/form-data" onSubmit={testSubmit}>
+        <form encType="multipart/form-data">
           <div className={styles.form}>
             <label className={styles.form_label}>게임: </label>
             <DefaultTextInput
@@ -402,16 +393,16 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
         <DefaultButton
           size="md"
           onClick={submitProfile}
-          disabled={status === "pending"}
+          disabled={modifyProfileStatus === "pending"}
         >
-          <LoadingBlock loading={status === "pending"}>
+          <LoadingBlock loading={modifyProfileStatus === "pending"}>
             {prevData ? "수정" : "추가"}
           </LoadingBlock>
         </DefaultButton>
         <DefaultButton
           size="md"
           onClick={close}
-          disabled={status === "pending"}
+          disabled={modifyProfileStatus === "pending"}
         >
           취소
         </DefaultButton>

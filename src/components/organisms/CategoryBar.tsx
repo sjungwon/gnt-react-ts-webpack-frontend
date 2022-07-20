@@ -5,7 +5,10 @@ import styles from "./scss/CategoryBar.module.scss";
 import DefaultButton from "../atoms/DefaultButton";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
-import { getCategoryThunk } from "../../redux/modules/category";
+import {
+  getCategoryThunk,
+  setCurrentCategoryTitle,
+} from "../../redux/modules/category";
 import LoadingBlock from "../atoms/LoadingBlock";
 import AddCategory from "../molecules/AddCategory";
 
@@ -13,6 +16,7 @@ const CategoryList: FC = () => {
   const categories = useSelector(
     (state: RootState) => state.category.categories
   );
+  const dispatch = useDispatch<AppDispatch>();
 
   return (
     <nav className={styles.category_list}>
@@ -24,15 +28,18 @@ const CategoryList: FC = () => {
       >
         전체 보기
       </NavLink>
-      {categories.map((game) => (
+      {categories.map((category) => (
         <NavLink
-          to={`/games/${encodeURI(game.title)}`}
-          key={game.title}
+          to={`/games/${encodeURI(category.title)}`}
+          key={category.title}
           className={({ isActive }) =>
             `${styles.category_item} ${isActive ? styles.active : ""}`
           }
+          onClick={() => {
+            dispatch(setCurrentCategoryTitle(category.title));
+          }}
         >
-          {game.title}
+          {category.title}
         </NavLink>
       ))}
     </nav>

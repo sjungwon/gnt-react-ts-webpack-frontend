@@ -25,6 +25,7 @@ const initialProfile: ProfileType = {
     URL: "",
     Key: "",
   },
+  createdAt: "",
 };
 
 export default function ProfileCard({ searchProfile }: PropsType) {
@@ -41,7 +42,7 @@ export default function ProfileCard({ searchProfile }: PropsType) {
         setProfile(response.data);
       }
     } catch (err) {
-      window.alert("프로필 데이터를 가져오는데 오류가 발생했습니다.");
+      console.log(err);
     }
   }, [searchProfile]);
 

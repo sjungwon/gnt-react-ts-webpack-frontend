@@ -11,17 +11,17 @@ import styles from "./scss/RemoveConfirmModal.module.scss";
 interface PropsType {
   show: boolean;
   close: () => void;
-  loading: boolean;
   remove: () => void;
   customMessage?: ReactNode;
+  loading: boolean;
 }
 
 export default function RemoveConfirmModal({
   show,
   close,
-  loading,
   remove,
   customMessage,
+  loading,
 }: PropsType) {
   return (
     <Modal show={show} onHide={close} size="sm" centered>

@@ -2,10 +2,9 @@ import { FC, ReactNode, useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import {
-  clearModifyId,
+  clearModifyProfileStatus,
   deleteProfileThunk,
   ProfileType,
-  setModifyId,
 } from "../../redux/modules/profile";
 import { AppDispatch, RootState } from "../../redux/store";
 import DefaultButton from "../atoms/DefaultButton";
@@ -143,26 +142,23 @@ const ProfileLiEl: FC<{
   const [showUpdate, setShowUpdate] = useState<boolean>(false);
 
   const showUpdateOpen = useCallback(() => {
-    dispatch(setModifyId(profile._id));
     setShowUpdate(true);
-  }, [dispatch, profile._id]);
+  }, []);
 
   const showUpdateClose = useCallback(() => {
-    dispatch(clearModifyId());
     setShowUpdate(false);
-  }, [dispatch]);
+  }, []);
 
   const [showRemoveMd, setShowRemoveMd] = useState<boolean>(false);
   const removeMdOpen = useCallback(() => {
-    dispatch(setModifyId(profile._id));
+    dispatch(clearModifyProfileStatus());
     setShowRemoveMd(true);
-  }, [dispatch, profile._id]);
-  const removeMdClose = useCallback(() => {
-    dispatch(clearModifyId());
-    setShowRemoveMd(false);
   }, [dispatch]);
-  const modifyStatus = useSelector(
-    (state: RootState) => state.profile.modifyStatus[profile._id]
+  const removeMdClose = useCallback(() => {
+    setShowRemoveMd(false);
+  }, []);
+  const modifyProfileStatus = useSelector(
+    (state: RootState) => state.profile.modifyProfileStatus
   );
   const deleteProfile = useCallback(() => {
     dispatch(deleteProfileThunk(profile._id));
@@ -176,10 +172,18 @@ const ProfileLiEl: FC<{
     );
   };
 
+  const username = useSelector((state: RootState) => state.auth.username);
+  const userId = useSelector((state: RootState) => state.auth.userId);
+
   return (
     <li className={styles.profile_block}>
       <NavLink to={`/profiles/${profile._id}`} className={styles.profile}>
-        <ProfileBlock profile={profile} hideUsername disableNavigate />
+        <ProfileBlock
+          profile={profile}
+          user={{ username, _id: userId }}
+          hideUsername
+          disableNavigate
+        />
       </NavLink>
       <div className={styles.profile_btns}>
         <DefaultButton
@@ -199,7 +203,7 @@ const ProfileLiEl: FC<{
         </DefaultButton>
         <RemoveConfirmModal
           show={showRemoveMd}
-          loading={modifyStatus === "pending"}
+          loading={modifyProfileStatus === "pending"}
           remove={deleteProfile}
           close={removeMdClose}
           customMessage={<RemoveMessage />}

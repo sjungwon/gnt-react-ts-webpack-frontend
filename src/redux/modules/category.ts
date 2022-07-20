@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { addCategoryAPI, getCategoryAPI } from "../../apis/category";
 import { SortCategory } from "../../functions/SortFunc";
@@ -43,6 +43,7 @@ interface CategoryState {
   status: "idle" | "pending" | "success" | "failed";
   categories: CategoryType[];
   addStatus: "idle" | "pending" | "success" | "failed";
+  currentCategoryTitle: string;
 }
 
 //initialState
@@ -50,13 +51,26 @@ const initialState: CategoryState = {
   status: "idle",
   categories: [],
   addStatus: "idle",
+  currentCategoryTitle: "all",
 };
 
 //Slice
 const categoryslice = createSlice({
   name: "category",
   initialState,
-  reducers: {},
+  reducers: {
+    setCurrentCategoryTitle: (
+      state: CategoryState,
+      action: PayloadAction<string>
+    ) => {
+      const findedCategory = state.categories.find(
+        (category) => category.title === action.payload
+      );
+      if (findedCategory) {
+        state.currentCategoryTitle = findedCategory.title;
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getCategoryThunk.pending, (state, action) => {
@@ -85,5 +99,7 @@ const categoryslice = createSlice({
       });
   },
 });
+
+export const { setCurrentCategoryTitle } = categoryslice.actions;
 
 export default categoryslice.reducer;
