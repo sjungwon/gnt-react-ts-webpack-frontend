@@ -27,6 +27,7 @@ import { AppDispatch, RootState } from "../../redux/store";
 import CommentList from "./CommentList";
 import CommentsButton from "../atoms/CommentsButton";
 import { GoTriangleUp, GoTriangleDown } from "react-icons/go";
+import useHasCategoryProfile from "../../hooks/useHasCategoryProfile";
 
 interface PropsType {
   post: PostType;
@@ -89,15 +90,12 @@ export default function PostElement({ post }: PropsType) {
     dispatch(deletePostThunk(post._id));
   }, [dispatch, post._id]);
 
-  const profiles = useSelector((state: RootState) => state.profile.profiles);
+  const hasCategoryProfile = useHasCategoryProfile(post.category.title);
   //포스트 관리 함수 -> 수정, 제거 선택
   const select = useCallback(
     (eventKey: any) => {
       if (eventKey === "1") {
-        const filteredProfileArr = profiles.filter(
-          (profile) => profile.category.title === post.category.title
-        );
-        if (!filteredProfileArr.length) {
+        if (!hasCategoryProfile) {
           window.alert(
             "해당 포스트 카테고리에 포함되는 프로필이 없어 수정할 수 없습니다. 프로필을 추가해주세요."
           );
@@ -110,7 +108,7 @@ export default function PostElement({ post }: PropsType) {
         return;
       }
     },
-    [dispatch, handleRemoveModalOpen, post._id, post.category.title, profiles]
+    [dispatch, handleRemoveModalOpen, hasCategoryProfile, post._id]
   );
 
   //텍스트 제한 관련 데이터
@@ -171,11 +169,7 @@ export default function PostElement({ post }: PropsType) {
           </NavLink>
         </Card.Title>
         <div className={styles.card_header_profile}>
-          <ProfileBlock
-            profile={post.profile}
-            user={post.profile ? undefined : post.user}
-            size="lg"
-          >
+          <ProfileBlock profile={post.profile} user={post.user} size="lg">
             <Card.Subtitle className={styles.card_header_subtitle}>
               {post.createdAt ? new Date(post.createdAt).toLocaleString() : ""}
             </Card.Subtitle>

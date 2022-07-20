@@ -172,10 +172,18 @@ const ProfileLiEl: FC<{
     );
   };
 
+  const username = useSelector((state: RootState) => state.auth.username);
+  const userId = useSelector((state: RootState) => state.auth.userId);
+
   return (
     <li className={styles.profile_block}>
       <NavLink to={`/profiles/${profile._id}`} className={styles.profile}>
-        <ProfileBlock profile={profile} hideUsername disableNavigate />
+        <ProfileBlock
+          profile={profile}
+          user={{ username, _id: userId }}
+          hideUsername
+          disableNavigate
+        />
       </NavLink>
       <div className={styles.profile_btns}>
         <DefaultButton

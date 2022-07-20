@@ -14,6 +14,9 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
 import CommentAPI from "../../apis/comment";
+import SubcommentList from "./SubcommentList";
+import CommentsButton from "../atoms/CommentsButton";
+import useHasCategoryProfile from "../../hooks/useHasCategoryProfile";
 
 interface CommentElementProps {
   category: string;
@@ -40,12 +43,12 @@ export default function CommentElement({
   }, []);
 
   const handleRemoveModalOpen = useCallback(() => {
-    // if (comment.subcomments.length) {
-    //   window.alert("대댓글이 있는 댓글은 제거할 수 없습니다.");
-    //   return;
-    // }
+    if (comment.subcommentsCount) {
+      window.alert("대댓글이 있는 댓글은 제거할 수 없습니다.");
+      return;
+    }
     setShowRemoveModal(true);
-  }, []);
+  }, [comment.subcommentsCount]);
 
   const dispatch = useDispatch<AppDispatch>();
   //모달에 전달 -> 모달에서 제거 누르면 실행
@@ -67,6 +70,10 @@ export default function CommentElement({
     (state: RootState) => state.post.modifyContentId
   );
 
+  const [addSubcomment, setAddSubcomment] = useState<boolean>(false);
+
+  const hasCategoryProfile = useHasCategoryProfile(category);
+
   if (comment._id === modifyContentId) {
     return (
       <>
@@ -75,20 +82,16 @@ export default function CommentElement({
           prevData={comment}
           category={category}
         />
-        {/* {comment.subcomments ? (
-          <SubcommentList
-            subcomments={{
-              data: comment.subcomments,
-              lastEvaluatedKey: comment.subcommentsLastEvaluatedKey,
-            }}
-            postId={comment.postId}
-            commentId={`${comment.postId}/${comment.date}`}
-            addSubcomment={addSubcomment}
-            setAddSubcomment={setAddSubcomment}
-            key={`${comment.postId}/${comment.date}`}
-            game={comment.game}
-          />
-        ) : null} */}
+        <SubcommentList
+          key={comment._id}
+          postId={comment.postId}
+          commentId={comment._id}
+          category={category}
+          subcomments={comment.subcomments}
+          subcommentsCount={comment.subcommentsCount}
+          addSubcomment={addSubcomment}
+          setAddSubcomment={setAddSubcomment}
+        />
       </>
     );
   }
@@ -97,10 +100,7 @@ export default function CommentElement({
     <>
       <CommentCard>
         <CommentCard.Header>
-          <ProfileBlock
-            profile={comment.profile}
-            user={comment.profile ? undefined : comment.user}
-          />
+          <ProfileBlock profile={comment.profile} user={comment.user} />
         </CommentCard.Header>
         <CommentCard.Body>
           <div className={styles.comment_text}>{comment.text}</div>
@@ -110,16 +110,25 @@ export default function CommentElement({
         </CommentCard.Body>
         {parentShowComment ? (
           <CommentCard.Buttons>
-            {/* <CommentsButton
+            <CommentsButton
               size="sm"
-              onClick={addSubcommentHandler}
+              onClick={() => {
+                setAddSubcomment((prev) => !prev);
+              }}
               active={addSubcomment}
-            ></CommentsButton> */}
+            ></CommentsButton>
             {username === comment.user.username ? (
               <>
                 <DefaultButton
                   size="sm"
                   onClick={() => {
+                    if (!hasCategoryProfile) {
+                      window.alert(
+                        "포스트 카테고리에 포함되는 프로필이 없어 수정할 수 없습니다. 프로필을 추가해주세요."
+                      );
+                      return;
+                    }
+                    setAddSubcomment(false);
                     dispatch(setModifyContentId(comment._id));
                   }}
                   className={styles.btn_margin}
@@ -142,20 +151,18 @@ export default function CommentElement({
           remove={removeComment}
         />
       </CommentCard>
-      {/* {comment.subcomments && parentShowComment ? (
+      {parentShowComment ? (
         <SubcommentList
-          subcomments={{
-            data: comment.subcomments,
-            lastEvaluatedKey: comment.subcommentsLastEvaluatedKey,
-          }}
+          subcomments={comment.subcomments}
+          subcommentsCount={comment.subcommentsCount}
           postId={comment.postId}
-          commentId={`${comment.postId}/${comment.date}`}
+          commentId={comment._id}
           addSubcomment={addSubcomment}
           setAddSubcomment={setAddSubcomment}
-          key={`${comment.postId}/${comment.date}`}
-          game={game}
+          key={comment._id}
+          category={category}
         />
-      ) : null} */}
+      ) : null}
     </>
   );
 }

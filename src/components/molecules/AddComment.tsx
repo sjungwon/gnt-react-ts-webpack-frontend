@@ -1,5 +1,5 @@
 import styles from "./scss/AddComment.module.scss";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import ProfileSelector from "../atoms/ProfileSelector";
 import LoadingBlock from "../atoms/LoadingBlock";
 import DefaultButton from "../atoms/DefaultButton";
@@ -44,12 +44,6 @@ PropsType) {
   );
   const [currentProfile, setCurrentProfile] =
     useState<ProfileType>(initialProfile);
-
-  useEffect(() => {
-    if (prevData && prevData.profile) {
-      setCurrentProfile(prevData.profile);
-    }
-  }, [prevData]);
 
   //데이터 제출용 ref
   const textAreaRef = useRef<HTMLTextAreaElement>(null);

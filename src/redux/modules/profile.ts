@@ -155,6 +155,7 @@ const profileSlice = createSlice({
         state.profiles = state.profiles.filter(
           (profile: ProfileType) => profile._id !== deletedProfileId
         );
+        window.location.reload();
       })
       .addCase(deleteProfileThunk.rejected, (state) => {
         window.alert("프로필 제거에 실패했습니다. 다시 시도해주세요.");

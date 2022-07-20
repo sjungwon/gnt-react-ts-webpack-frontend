@@ -26,9 +26,6 @@ export default function ProfileBlock({
   vertical,
 }: PropsType) {
   if (!profile) {
-    if (!user) {
-      return null;
-    }
     return (
       <>
         <img
@@ -45,9 +42,9 @@ export default function ProfileBlock({
         >
           {"삭제된 프로필"}
           {hideUsername ? null : (
-            <span
-              className={styles.profile_username}
-            >{` (${user.username})`}</span>
+            <span className={styles.profile_username}>{` (${
+              user ? user.username : "유저 정보 없음"
+            })`}</span>
           )}
           {children}
         </div>

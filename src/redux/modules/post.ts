@@ -31,8 +31,23 @@ export interface PostType {
 }
 
 export interface CommentType {
-  postId: string;
   _id: string;
+  postId: string;
+  user: {
+    username: string;
+    _id: string;
+  };
+  profile: ProfileType | null;
+  text: string;
+  subcomments: SubcommentType[];
+  subcommentsCount: number;
+  createdAt: string;
+}
+
+export interface SubcommentType {
+  _id: string;
+  postId: string;
+  commentId: string;
   user: {
     username: string;
     _id: string;
@@ -189,6 +204,130 @@ const postSlice = createSlice({
         return post;
       });
     },
+    getMoreSubcomments: (
+      state: PostState,
+      action: PayloadAction<SubcommentType[]>
+    ) => {
+      const newSubcomments = action.payload;
+      if (!newSubcomments.length) {
+        return;
+      }
+      const postId = newSubcomments[0].postId;
+      const commentId = newSubcomments[0].commentId;
+      state.posts = state.posts.map((post) => {
+        if (post._id === postId) {
+          return {
+            ...post,
+            comments: post.comments.map((comment) => {
+              if (comment._id === commentId) {
+                return {
+                  ...comment,
+                  subcomments: [...comment.subcomments, ...newSubcomments],
+                };
+              }
+              return comment;
+            }),
+          };
+        }
+        return post;
+      });
+    },
+    createSubcomments: (
+      state: PostState,
+      action: PayloadAction<SubcommentType>
+    ) => {
+      const newSubcomment = action.payload;
+      if (!newSubcomment.hasOwnProperty("_id")) {
+        return;
+      }
+
+      const postId = newSubcomment.postId;
+      const commentId = newSubcomment.commentId;
+
+      state.posts = state.posts.map((post) => {
+        if (post._id === postId) {
+          return {
+            ...post,
+            comments: post.comments.map((comment) => {
+              if (comment._id === commentId) {
+                return {
+                  ...comment,
+                  subcomments: [newSubcomment, ...comment.subcomments],
+                  subcommentsCount: comment.subcommentsCount + 1,
+                };
+              }
+              return comment;
+            }),
+          };
+        }
+
+        return post;
+      });
+    },
+    updateSubcomment: (
+      state: PostState,
+      action: PayloadAction<SubcommentType>
+    ) => {
+      const updatedSubcomment = action.payload;
+
+      const postId = updatedSubcomment.postId;
+      const commentId = updatedSubcomment.commentId;
+
+      state.posts = state.posts.map((post) => {
+        if (post._id === postId) {
+          return {
+            ...post,
+            comments: post.comments.map((comment) => {
+              if (comment._id === commentId) {
+                return {
+                  ...comment,
+                  subcomments: comment.subcomments.map((subcomment) => {
+                    if (subcomment._id === updatedSubcomment._id) {
+                      return updatedSubcomment;
+                    }
+                    return subcomment;
+                  }),
+                };
+              }
+              return comment;
+            }),
+          };
+        }
+
+        return post;
+      });
+    },
+    deleteSubcomment: (
+      state: PostState,
+      action: PayloadAction<SubcommentType>
+    ) => {
+      const deletedSubcomment = action.payload;
+
+      const postId = deletedSubcomment.postId;
+      const commentId = deletedSubcomment.commentId;
+
+      state.posts = state.posts.map((post) => {
+        if (post._id === postId) {
+          return {
+            ...post,
+            comments: post.comments.map((comment) => {
+              if (comment._id === commentId) {
+                return {
+                  ...comment,
+                  subcomments: comment.subcomments.filter(
+                    (subcomment) => subcomment._id !== deletedSubcomment._id
+                  ),
+                  subcommentsCount: comment.subcommentsCount - 1,
+                };
+              }
+              return comment;
+            }),
+          };
+        }
+
+        return post;
+      });
+    },
   },
   extraReducers(builder) {
     builder
@@ -275,6 +414,10 @@ export const {
   createComment,
   updateComment,
   deleteComment,
+  getMoreSubcomments,
+  createSubcomments,
+  updateSubcomment,
+  deleteSubcomment,
 } = postSlice.actions;
 
 export default postSlice.reducer;
