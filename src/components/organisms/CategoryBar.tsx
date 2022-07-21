@@ -12,7 +12,7 @@ import {
 import LoadingBlock from "../atoms/LoadingBlock";
 import AddCategory from "../molecules/AddCategory";
 
-const CategoryList: FC = () => {
+const CategoryList: FC<{ close: () => void }> = ({ close }) => {
   const categories = useSelector(
     (state: RootState) => state.category.categories
   );
@@ -28,6 +28,7 @@ const CategoryList: FC = () => {
           }
           onClick={() => {
             dispatch(setCurrentCategoryByTitle(""));
+            close();
           }}
         >
           전체 보기
@@ -39,6 +40,9 @@ const CategoryList: FC = () => {
             className={({ isActive }) =>
               `${styles.category_item} ${isActive ? styles.active : ""}`
             }
+            onClick={() => {
+              close();
+            }}
           >
             {category.title}
           </NavLink>
@@ -50,9 +54,10 @@ const CategoryList: FC = () => {
 
 interface PropsType {
   show: boolean;
+  close: () => void;
 }
 
-export default function CategoryBar({ show }: PropsType) {
+export default function CategoryBar({ show, close }: PropsType) {
   const [showAdd, setShowAdd] = useState<boolean>(false);
   const username = useSelector((state: RootState) => state.auth.username);
 
@@ -95,7 +100,7 @@ export default function CategoryBar({ show }: PropsType) {
         />
       </div>
       <LoadingBlock loading={status === "pending"}>
-        <CategoryList />
+        <CategoryList close={close} />
       </LoadingBlock>
     </div>
   );

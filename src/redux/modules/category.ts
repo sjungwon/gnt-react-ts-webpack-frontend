@@ -97,6 +97,9 @@ const categoryslice = createSlice({
       );
       state.currentCategory = findedCategory || all;
     },
+    clearAddCategoryStatus: (state: CategoryState) => {
+      state.addStatus = "idle";
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -127,6 +130,7 @@ const categoryslice = createSlice({
   },
 });
 
-export const { setCurrentCategoryByTitle } = categoryslice.actions;
+export const { setCurrentCategoryByTitle, clearAddCategoryStatus } =
+  categoryslice.actions;
 
 export default categoryslice.reducer;

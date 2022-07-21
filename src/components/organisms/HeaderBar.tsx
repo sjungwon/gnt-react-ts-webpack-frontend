@@ -10,9 +10,9 @@ import MobileButton from "../atoms/MobileButton";
 import DefaultButton from "../atoms/DefaultButton";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
-import { useIsMobile } from "../../hooks/useIsMobile";
 import { signoutThunk } from "../../redux/modules/auth";
 import { clearProfileStateLogout } from "../../redux/modules/profile";
+import useIsMobile from "../../hooks/useIsMobile";
 
 interface PropsType {
   showCategoryHandler: () => void;
