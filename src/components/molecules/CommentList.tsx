@@ -86,7 +86,6 @@ export default function CommentList({
             key={comments[0]._id}
             comment={comments[0]}
             category={category}
-            borderBottom={false}
             parentShowComment={showComment}
             removeCommentRenderLengthHandler={removeCommentRenderLengthHandler}
           />
@@ -108,7 +107,6 @@ export default function CommentList({
           <CommentElement
             key={comment._id}
             comment={comment}
-            borderBottom={true}
             parentShowComment={showComment}
             category={category}
             removeCommentRenderLengthHandler={removeCommentRenderLengthHandler}

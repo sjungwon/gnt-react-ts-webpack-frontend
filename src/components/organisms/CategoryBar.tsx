@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
 import {
   getCategoryThunk,
-  setCurrentCategoryTitle,
+  setCurrentCategoryByTitle,
 } from "../../redux/modules/category";
 import LoadingBlock from "../atoms/LoadingBlock";
 import AddCategory from "../molecules/AddCategory";
@@ -19,29 +19,31 @@ const CategoryList: FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   return (
-    <nav className={styles.category_list}>
-      <NavLink
-        to={"/"}
-        className={({ isActive }) =>
-          `${styles.category_item} ${isActive ? styles.active : ""}`
-        }
-      >
-        전체 보기
-      </NavLink>
-      {categories.map((category) => (
+    <nav>
+      <div className={styles.category_list}>
         <NavLink
-          to={`/games/${encodeURI(category.title)}`}
-          key={category.title}
+          to={"/"}
           className={({ isActive }) =>
             `${styles.category_item} ${isActive ? styles.active : ""}`
           }
           onClick={() => {
-            dispatch(setCurrentCategoryTitle(category.title));
+            dispatch(setCurrentCategoryByTitle(""));
           }}
         >
-          {category.title}
+          전체 보기
         </NavLink>
-      ))}
+        {categories.map((category) => (
+          <NavLink
+            to={`/categories/${encodeURI(category.title)}`}
+            key={category.title}
+            className={({ isActive }) =>
+              `${styles.category_item} ${isActive ? styles.active : ""}`
+            }
+          >
+            {category.title}
+          </NavLink>
+        ))}
+      </div>
     </nav>
   );
 };
@@ -70,33 +72,31 @@ export default function CategoryBar({ show }: PropsType) {
   }, [dispatch]);
 
   return (
-    <div className={`${styles.container} ${show ? styles.container_show : ""}`}>
-      <div className={styles.container_padding}>
-        <div className={styles.category_list_title_container}>
-          <div className={styles.category_list_title}>
-            <div className={styles.list_title}>
-              <AiOutlineUnorderedList />
-              <h3 className={styles.category_title}>게임 리스트</h3>
-            </div>
-            <DefaultButton
-              size="md"
-              onClick={setShowAddHandler}
-              disabled={!username}
-            >
-              게임 추가
-            </DefaultButton>
+    <div className={styles.container_padding}>
+      <div className={styles.category_list_title_container}>
+        <div className={styles.category_list_title}>
+          <div className={styles.list_title}>
+            <AiOutlineUnorderedList />
+            <h3 className={styles.category_title}>게임 리스트</h3>
           </div>
-          <AddCategory
-            show={showAdd}
-            close={() => {
-              setShowAdd(false);
-            }}
-          />
+          <DefaultButton
+            size="md"
+            onClick={setShowAddHandler}
+            disabled={!username}
+          >
+            게임 추가
+          </DefaultButton>
         </div>
-        <LoadingBlock loading={status === "pending"}>
-          <CategoryList />
-        </LoadingBlock>
+        <AddCategory
+          show={showAdd}
+          close={() => {
+            setShowAdd(false);
+          }}
+        />
       </div>
+      <LoadingBlock loading={status === "pending"}>
+        <CategoryList />
+      </LoadingBlock>
     </div>
   );
 }

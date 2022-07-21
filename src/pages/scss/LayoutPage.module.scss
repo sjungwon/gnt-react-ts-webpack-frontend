@@ -1,0 +1,110 @@
+@import "../../scss/variables";
+@import "../../scss/mixin";
+
+.container {
+  overflow: hidden;
+}
+.content_container {
+  display: flex;
+  width: 62rem;
+  min-width: 50rem;
+  max-width: 62rem;
+  min-height: calc(100vh - 3rem);
+  margin: 0 auto;
+  font-weight: 400;
+  color: $font-color-gray;
+}
+
+.header_container {
+  position: relative;
+  width: 100%;
+  height: 3rem;
+}
+
+.header_fixed_container {
+  width: 100%;
+  height: 3rem;
+  position: fixed;
+  top: 0;
+  background-color: $primary-default;
+  box-shadow: $card-box-shadow-bottom;
+  z-index: 3;
+}
+
+.header_content_container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 62rem;
+  min-width: 50rem;
+  max-width: 62rem;
+  height: 3rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.main_container {
+  position: relative;
+  width: 32rem;
+  min-width: 20rem;
+  max-width: 32rem;
+  min-height: calc(100vh - 3rem);
+  margin: 0;
+  padding: 0;
+  background-color: $primary-default-background;
+  border-left: 1px solid $primary-default-border;
+  border-right: 1px solid $primary-default-border;
+}
+
+.nav_container {
+  width: 15rem;
+  min-width: 15rem;
+  max-width: 15rem;
+}
+
+.right_aside_container {
+  width: 15rem;
+  min-width: 15rem;
+  max-width: 15rem;
+  padding: 1rem;
+  padding-bottom: 0;
+}
+
+@include mobile {
+  .header_container {
+    max-width: 100vw;
+  }
+  .header_fixed_container {
+    max-width: 100vw;
+  }
+  .header_content_container {
+    position: relative;
+    min-width: 10rem;
+    max-width: 100vw;
+    width: 100vw;
+    padding: 0 1.25rem;
+  }
+  .nav_container {
+    position: fixed;
+    top: 3rem;
+    z-index: 4;
+    min-width: 100vw;
+    max-width: 100vw;
+    height: 0;
+    overflow: hidden;
+    border-bottom: $primary-default-border;
+    border-radius: 0 0 0.25rem 0.25rem;
+    box-shadow: $card-box-shadow-bottom;
+    background-color: white;
+    transition: height 0.3s ease;
+  }
+  .nav_container_show {
+    display: block;
+    height: 100vh;
+    max-height: 100vh;
+  }
+
+  .right_aside_container {
+    display: none;
+  }
+}

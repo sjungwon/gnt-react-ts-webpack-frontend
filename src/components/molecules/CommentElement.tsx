@@ -21,7 +21,6 @@ import useHasCategoryProfile from "../../hooks/useHasCategoryProfile";
 interface CommentElementProps {
   category: string;
   comment: CommentType;
-  borderBottom: boolean;
   parentShowComment: boolean;
   removeCommentRenderLengthHandler: () => void;
 }
@@ -29,7 +28,6 @@ interface CommentElementProps {
 export default function CommentElement({
   category,
   comment,
-  borderBottom,
   parentShowComment,
   removeCommentRenderLengthHandler,
 }: CommentElementProps) {
@@ -59,12 +57,13 @@ export default function CommentElement({
       const response = await CommentAPI.deleteComment(comment._id);
       const deletedComment = response.data;
       dispatch(deleteComment({ postId: comment.postId, deletedComment }));
+      removeCommentRenderLengthHandler();
       setLoading(false);
     } catch {
       window.alert("댓글을 제거 중에 오류가 발생했습니다. 다시 시도해주세요.");
       setLoading(false);
     }
-  }, [comment, dispatch]);
+  }, [comment._id, comment.postId, dispatch, removeCommentRenderLengthHandler]);
 
   const modifyContentId = useSelector(
     (state: RootState) => state.post.modifyContentId
@@ -97,7 +96,7 @@ export default function CommentElement({
   }
 
   return (
-    <>
+    <article>
       <CommentCard>
         <CommentCard.Header>
           <ProfileBlock profile={comment.profile} user={comment.user} />
@@ -163,6 +162,6 @@ export default function CommentElement({
           category={category}
         />
       ) : null}
-    </>
+    </article>
   );
 }

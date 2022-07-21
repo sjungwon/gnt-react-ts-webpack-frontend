@@ -6,26 +6,74 @@ import { AiOutlineCheck } from "react-icons/ai";
 // import UserMenuFixedButton from "../molecules/UserMenuFixedButton";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
-import { getPostThunk } from "../../redux/modules/post";
+import {
+  clearPosts,
+  getPostByCategoryThunk,
+  getPostByProfileThunk,
+  getPostByUsernameThunk,
+  getPostThunk,
+} from "../../redux/modules/post";
 import LoadingBlock from "../atoms/LoadingBlock";
 
-export default function PostList() {
+interface PropsType {
+  type: "" | "category" | "profile" | "username";
+  params?: string;
+}
+
+export default function PostList({ type, params }: PropsType) {
   const posts = useSelector((state: RootState) => state.post.posts);
   const status = useSelector((state: RootState) => state.post.status);
-  const lastPostDate = useSelector(
-    (state: RootState) => state.post.lastPostDate
-  );
+
   const dispatch = useDispatch<AppDispatch>();
   const loading = useMemo(() => {
     return status === "pending";
   }, [status]);
 
+  const currentCategory = useSelector(
+    (state: RootState) => state.category.currentCategory
+  );
+
   const sendQuery = useCallback(async () => {
     console.log(status);
     if (status !== "done" && status !== "failed" && status !== "pending") {
-      dispatch(getPostThunk(lastPostDate));
+      const lastPostDate = posts.length
+        ? posts[posts.length - 1].createdAt
+        : "";
+      switch (type) {
+        case "category": {
+          dispatch(
+            getPostByCategoryThunk({
+              categoryId: currentCategory._id,
+              lastPostDate,
+            })
+          );
+          break;
+        }
+        case "profile": {
+          dispatch(
+            getPostByProfileThunk({
+              profileId: params || "",
+              lastPostDate,
+            })
+          );
+          break;
+        }
+        case "username": {
+          dispatch(
+            getPostByUsernameThunk({
+              username: params || "",
+              lastPostDate,
+            })
+          );
+          break;
+        }
+        default: {
+          dispatch(getPostThunk(lastPostDate));
+          break;
+        }
+      }
     }
-  }, [dispatch, lastPostDate, status]);
+  }, [currentCategory._id, dispatch, params, posts, status, type]);
 
   const loader = useRef<HTMLDivElement>(null);
 
@@ -38,6 +86,13 @@ export default function PostList() {
       sendQuery();
     }
   }, [page, sendQuery, prevPage]);
+
+  //카테고리 변하면 포스트 초기화
+  useEffect(() => {
+    dispatch(clearPosts());
+    setPage(1);
+    setPrevPage(0);
+  }, [type, dispatch, params]);
 
   const handleObserver: IntersectionObserverCallback = useCallback(
     (entries: IntersectionObserverEntry[]) => {
@@ -69,15 +124,16 @@ export default function PostList() {
     if (savedLoader) observer.observe(savedLoader);
     return () => {
       if (savedLoader) observer.unobserve(savedLoader);
+      console.log("unobserve");
     };
   }, [handleObserver]);
 
   //렌더
   //post가 있는 경우
   return (
-    <>
-      <div className={styles.container}>
-        {/* <UserMenuFixedButton />
+    <section>
+      {/* <div className={styles.container}> */}
+      {/* <UserMenuFixedButton />
         <h3 className={styles.category}>{title}</h3>
         {category === "usernames" && decodeURI(searchParam) !== username ? (
           <UserHomeCard username={decodeURI(searchParam)} />
@@ -91,21 +147,21 @@ export default function PostList() {
         (category === "profiles" && currentProfile.id === searchParam) ? (
           <AddPostElement />
         ) : null} */}
-        {posts.map((post, i) => {
-          return <PostElement post={post} key={`${post._id}`} />;
-        })}
-        <div className={styles.final_container} ref={loader}>
-          <div className={styles.final}>
-            <LoadingBlock loading={loading} size="md">
-              {loading ? null : (
-                <div className={styles.loading_done}>
-                  <AiOutlineCheck />
-                </div>
-              )}
-            </LoadingBlock>
-          </div>
+      {posts.map((post, i) => {
+        return <PostElement post={post} key={`${post._id}`} />;
+      })}
+      <div className={styles.final_container} ref={loader}>
+        <div className={styles.final}>
+          <LoadingBlock loading={loading} size="md">
+            {loading ? null : (
+              <div className={styles.loading_done}>
+                <AiOutlineCheck />
+              </div>
+            )}
+          </LoadingBlock>
         </div>
       </div>
-    </>
+      {/* </div> */}
+    </section>
   );
 }

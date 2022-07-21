@@ -61,7 +61,6 @@ type StatusType = "idle" | "pending" | "success" | "failed" | "done";
 
 interface PostState {
   status: StatusType;
-  lastPostDate: string;
   posts: PostType[];
   modifyContentId: "addPost" | string;
   deletePostStatus: "idle" | "pending" | "success" | "failed";
@@ -69,7 +68,6 @@ interface PostState {
 
 const initialState: PostState = {
   status: "idle",
-  lastPostDate: "",
   posts: [],
   modifyContentId: "",
   deletePostStatus: "idle",
@@ -77,8 +75,32 @@ const initialState: PostState = {
 
 export const getPostThunk = createAsyncThunk(
   "post/get",
-  async (lastPostData?: string) => {
-    const response = await PostAPI.get(lastPostData);
+  async (lastPostDate?: string) => {
+    const response = await PostAPI.get(lastPostDate);
+    return response.data;
+  }
+);
+
+export const getPostByCategoryThunk = createAsyncThunk(
+  "post/getByCategory",
+  async (data: { categoryId: string; lastPostDate?: string }) => {
+    const response = await PostAPI.getByCategoryId(data);
+    return response.data;
+  }
+);
+
+export const getPostByProfileThunk = createAsyncThunk(
+  "post/getByProfile",
+  async (data: { profileId: string; lastPostDate?: string }) => {
+    const response = await PostAPI.getByProfileId(data);
+    return response.data;
+  }
+);
+
+export const getPostByUsernameThunk = createAsyncThunk(
+  "post/getByUsername",
+  async (data: { username: string; lastPostDate?: string }) => {
+    const response = await PostAPI.getByUsername(data);
     return response.data;
   }
 );
@@ -120,6 +142,10 @@ const postSlice = createSlice({
     },
     clearDeletePostStatus: (state: PostState) => {
       state.deletePostStatus = "idle";
+    },
+    clearPosts: (state: PostState) => {
+      state.posts = [];
+      state.status = "idle";
     },
     createPost: (state: PostState, action: PayloadAction<PostType>) => {
       const newPost = action.payload;
@@ -342,13 +368,69 @@ const postSlice = createSlice({
             state.status = "done";
           } else {
             state.status = "success";
-            state.lastPostDate = newPosts[newPosts.length - 1].createdAt;
           }
           state.posts = [...state.posts, ...newPosts];
           console.log(action.payload);
         }
       )
       .addCase(getPostThunk.rejected, (state, action) => {
+        state.status = "failed";
+      })
+      .addCase(getPostByCategoryThunk.pending, (state, action) => {
+        state.status = "pending";
+      })
+      .addCase(
+        getPostByCategoryThunk.fulfilled,
+        (state, action: PayloadAction<PostType[]>) => {
+          const newPosts = action.payload;
+          if (!newPosts.length) {
+            state.status = "done";
+          } else {
+            state.status = "success";
+          }
+          state.posts = [...state.posts, ...newPosts];
+          console.log(action.payload);
+        }
+      )
+      .addCase(getPostByCategoryThunk.rejected, (state, action) => {
+        state.status = "failed";
+      })
+      .addCase(getPostByProfileThunk.pending, (state, action) => {
+        state.status = "pending";
+      })
+      .addCase(
+        getPostByProfileThunk.fulfilled,
+        (state, action: PayloadAction<PostType[]>) => {
+          const newPosts = action.payload;
+          if (!newPosts.length) {
+            state.status = "done";
+          } else {
+            state.status = "success";
+          }
+          state.posts = [...state.posts, ...newPosts];
+          console.log(action.payload);
+        }
+      )
+      .addCase(getPostByProfileThunk.rejected, (state, action) => {
+        state.status = "failed";
+      })
+      .addCase(getPostByUsernameThunk.pending, (state, action) => {
+        state.status = "pending";
+      })
+      .addCase(
+        getPostByUsernameThunk.fulfilled,
+        (state, action: PayloadAction<PostType[]>) => {
+          const newPosts = action.payload;
+          if (!newPosts.length) {
+            state.status = "done";
+          } else {
+            state.status = "success";
+          }
+          state.posts = [...state.posts, ...newPosts];
+          console.log(action.payload);
+        }
+      )
+      .addCase(getPostByUsernameThunk.rejected, (state, action) => {
         state.status = "failed";
       })
       .addCase(deletePostThunk.pending, (state, action) => {
@@ -405,6 +487,7 @@ const postSlice = createSlice({
 });
 
 export const {
+  clearPosts,
   setModifyContentId,
   clearModifyContentId,
   clearDeletePostStatus,

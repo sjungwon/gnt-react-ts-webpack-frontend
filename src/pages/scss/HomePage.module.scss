@@ -1,0 +1,13 @@
+@import "../../scss/variables";
+.container {
+  position: relative;
+  width: 32rem;
+  min-width: 20rem;
+  max-width: 32rem;
+  min-height: calc(100vh - 3rem);
+  margin: 0;
+  padding: 0;
+  background-color: $primary-default-background;
+  border-left: 1px solid $primary-default-border;
+  border-right: 1px solid $primary-default-border;
+}

@@ -22,7 +22,7 @@ export default function ProfileSelector({
 
   useEffect(() => {
     const filteredProfileArr =
-      category === "all"
+      category === ""
         ? profiles
         : profiles.filter((profile) => profile.category.title === category);
     setFilteredProfiles(filteredProfileArr);

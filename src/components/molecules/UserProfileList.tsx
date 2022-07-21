@@ -13,7 +13,11 @@ import ProfileBlock from "./ProfileBlock";
 import RemoveConfirmModal from "./RemoveConfirmModal";
 import styles from "./scss/UserProfileList.module.scss";
 
-export default function UserProfileList() {
+interface PropsType {
+  filtered?: true;
+}
+
+export default function UserProfileList({ filtered }: PropsType) {
   const username = useSelector((state: RootState) => state.auth.username);
   const profiles = useSelector((state: RootState) => state.profile.profiles);
 
@@ -31,6 +35,18 @@ export default function UserProfileList() {
     setShowAdd(false);
   }, []);
 
+  const currentCategory = useSelector(
+    (state: RootState) => state.category.currentCategory
+  );
+
+  const filteredProfile = filtered
+    ? currentCategory.title
+      ? profiles.filter(
+          (profile) => profile.category.title === currentCategory.title
+        )
+      : profiles
+    : profiles;
+
   return (
     <>
       <div className={styles.profile_list_container}>
@@ -41,7 +57,7 @@ export default function UserProfileList() {
           </DefaultButton>
         </div>
         <AddProfileModal show={showAdd} close={closeShowAdd} />
-        <CategorizedProfileList profileArr={profiles} />
+        <CategorizedProfileList profileArr={filteredProfile} />
       </div>
     </>
   );

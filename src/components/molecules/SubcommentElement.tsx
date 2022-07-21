@@ -79,40 +79,42 @@ export default function SubcommentElement({
 
   //수정하려는 경우가 아니면 subcomment 렌더
   return (
-    <CommentCard>
-      <CommentCard.Header>
-        <ProfileBlock profile={subcomment.profile} user={subcomment.user} />
-      </CommentCard.Header>
-      <CommentCard.Body>
-        <div className={styles.subcomment_text}>{subcomment.text}</div>
-        <div className={styles.subcomment_date}>
-          {`${category} - ${new Date(subcomment.createdAt).toLocaleString()}`}
-        </div>
-      </CommentCard.Body>
-      <CommentCard.Buttons>
-        {username === subcomment.user.username ? (
-          <>
-            <DefaultButton
-              onClick={() => {
-                dispatch(setModifyContentId(subcomment._id));
-              }}
-              size="sm"
-              className={styles.btn_margin}
-            >
-              <BsPencilSquare /> <span className={styles.btn_text}>수정</span>
-            </DefaultButton>
-            <DefaultButton onClick={handleRemoveModalOpen} size="sm">
-              <BsTrash /> <span className={styles.btn_text}>삭제</span>
-            </DefaultButton>
-          </>
-        ) : null}
-      </CommentCard.Buttons>
-      <RemoveConfirmModal
-        close={handleRemoveModalClose}
-        show={showRemoveModal}
-        loading={loading}
-        remove={removeSubcomment}
-      />
-    </CommentCard>
+    <article>
+      <CommentCard>
+        <CommentCard.Header>
+          <ProfileBlock profile={subcomment.profile} user={subcomment.user} />
+        </CommentCard.Header>
+        <CommentCard.Body>
+          <div className={styles.subcomment_text}>{subcomment.text}</div>
+          <div className={styles.subcomment_date}>
+            {`${category} - ${new Date(subcomment.createdAt).toLocaleString()}`}
+          </div>
+        </CommentCard.Body>
+        <CommentCard.Buttons>
+          {username === subcomment.user.username ? (
+            <>
+              <DefaultButton
+                onClick={() => {
+                  dispatch(setModifyContentId(subcomment._id));
+                }}
+                size="sm"
+                className={styles.btn_margin}
+              >
+                <BsPencilSquare /> <span className={styles.btn_text}>수정</span>
+              </DefaultButton>
+              <DefaultButton onClick={handleRemoveModalOpen} size="sm">
+                <BsTrash /> <span className={styles.btn_text}>삭제</span>
+              </DefaultButton>
+            </>
+          ) : null}
+        </CommentCard.Buttons>
+        <RemoveConfirmModal
+          close={handleRemoveModalClose}
+          show={showRemoveModal}
+          loading={loading}
+          remove={removeSubcomment}
+        />
+      </CommentCard>
+    </article>
   );
 }

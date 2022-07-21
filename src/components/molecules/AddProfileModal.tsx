@@ -228,11 +228,6 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
     if (modifyProfileStatus === "success") {
       dispatch(clearModifyProfileStatus());
       close();
-      if (prevData) {
-        // console.log("reload");
-        // window.location.reload();
-        //나중에는 reload필요한 쪽만 dispatch thunk 다시 던지면 될 듯
-      }
     }
   }, [modifyProfileStatus, close, prevData, dispatch]);
 
@@ -258,7 +253,12 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
         <div className={styles.form}>
           <AddCategory show={addCategoryShow} close={addCategoryShowClose} />
         </div>
-        <form encType="multipart/form-data">
+        <form
+          encType="multipart/form-data"
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
           <div className={styles.form}>
             <label className={styles.form_label}>게임: </label>
             <DefaultTextInput

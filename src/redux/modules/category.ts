@@ -43,7 +43,8 @@ interface CategoryState {
   status: "idle" | "pending" | "success" | "failed";
   categories: CategoryType[];
   addStatus: "idle" | "pending" | "success" | "failed";
-  currentCategoryTitle: string;
+  currentCategory: CategoryType;
+  initialCategory: CategoryType;
 }
 
 //initialState
@@ -51,7 +52,22 @@ const initialState: CategoryState = {
   status: "idle",
   categories: [],
   addStatus: "idle",
-  currentCategoryTitle: "all",
+  currentCategory: {
+    title: "",
+    _id: "",
+    user: {
+      _id: "",
+      username: "",
+    },
+  },
+  initialCategory: {
+    title: "",
+    _id: "",
+    user: {
+      _id: "",
+      username: "",
+    },
+  },
 };
 
 //Slice
@@ -59,16 +75,27 @@ const categoryslice = createSlice({
   name: "category",
   initialState,
   reducers: {
-    setCurrentCategoryTitle: (
+    setCurrentCategoryByTitle: (
       state: CategoryState,
-      action: PayloadAction<string>
+      action: PayloadAction<string | undefined>
     ) => {
-      const findedCategory = state.categories.find(
-        (category) => category.title === action.payload
-      );
-      if (findedCategory) {
-        state.currentCategoryTitle = findedCategory.title;
+      const categoryTitle = action.payload;
+      const all = {
+        title: "",
+        _id: "",
+        user: {
+          _id: "",
+          username: "",
+        },
+      };
+      if (!categoryTitle) {
+        state.currentCategory = all;
+        return;
       }
+      const findedCategory = state.categories.find(
+        (category) => category.title === categoryTitle
+      );
+      state.currentCategory = findedCategory || all;
     },
   },
   extraReducers: (builder) => {
@@ -100,6 +127,6 @@ const categoryslice = createSlice({
   },
 });
 
-export const { setCurrentCategoryTitle } = categoryslice.actions;
+export const { setCurrentCategoryByTitle } = categoryslice.actions;
 
 export default categoryslice.reducer;

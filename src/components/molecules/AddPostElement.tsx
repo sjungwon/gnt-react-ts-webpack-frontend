@@ -85,10 +85,9 @@ export default function AddPostElement({ category, prevData }: Props) {
       }
       return;
     }
-    const filteredProfileTmp =
-      category === "all"
-        ? profiles
-        : profiles.filter((profile) => profile.category.title === category);
+    const filteredProfileTmp = category
+      ? profiles.filter((profile) => profile.category.title === category)
+      : profiles;
     setFilteredProfiles(filteredProfileTmp);
     setCurrentProfile(
       filteredProfileTmp.length ? filteredProfileTmp[0] : undefined
@@ -103,7 +102,7 @@ export default function AddPostElement({ category, prevData }: Props) {
             <Card.Title className={styles.card_header_title}>
               유저 메뉴
             </Card.Title>
-            <UserProfileList />
+            <UserProfileList filtered />
           </Card.Header>
         )}
         <Card.Body>

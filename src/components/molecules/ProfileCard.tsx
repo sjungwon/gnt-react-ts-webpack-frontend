@@ -1,64 +1,19 @@
-import { useCallback, useEffect, useState } from "react";
 import { Card } from "react-bootstrap";
 import { NavLink } from "react-router-dom";
-import { getProfileByIdAPI } from "../../apis/profile";
 import { ProfileType } from "../../redux/modules/profile";
 // import ImageSlide from "./ImageSlide";
 import styles from "./scss/ProfileCard.module.scss";
 
 interface PropsType {
-  searchProfile: string;
+  profile: ProfileType;
 }
 
-const initialProfile: ProfileType = {
-  _id: "",
-  nickname: "",
-  user: {
-    username: "",
-    _id: "",
-  },
-  category: {
-    title: "",
-    _id: "",
-  },
-  profileImage: {
-    URL: "",
-    Key: "",
-  },
-  createdAt: "",
-};
-
-export default function ProfileCard({ searchProfile }: PropsType) {
-  const [profile, setProfile] = useState<ProfileType>(initialProfile);
-  // const [credentialImage, setCredentialImage] = useState<string>("");
-
-  const getProfile = useCallback(async () => {
-    if (!searchProfile) {
-      return;
-    }
-    try {
-      const response = await getProfileByIdAPI(searchProfile);
-      if (response.data?._id) {
-        setProfile(response.data);
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  }, [searchProfile]);
-
-  useEffect(() => {
-    getProfile();
-    // if (searchProfile.credential) {
-    //   getImage(
-    //     searchProfile.credential,
-    //     "인증 이미지를 가져오는 중에 오류가 발생했습니다. 다시 시도해주세요.",
-    //     "credential"
-    //   );
-    // }
-  }, [getProfile]);
-
+export default function ProfileCard({ profile }: PropsType) {
   return (
     <Card className={styles.container}>
+      <Card.Header>
+        <Card.Title className={styles.title}>프로필 정보</Card.Title>
+      </Card.Header>
       <Card.Body className={styles.body_container}>
         <div className={styles.img_container}>
           <img
@@ -67,7 +22,7 @@ export default function ProfileCard({ searchProfile }: PropsType) {
             className={styles.profile_img}
           />
         </div>
-        <Card.Title className={styles.title}>
+        <Card.Title className={styles.title_nickname}>
           {profile.nickname !== "삭제된 프로필" ? "닉네임:" : ""}{" "}
           {profile.nickname}
         </Card.Title>
