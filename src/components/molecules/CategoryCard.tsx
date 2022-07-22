@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Card } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { getCategoryByTitle } from "../../apis/category";
 import {
   CategoryType,
@@ -55,14 +55,15 @@ export default function CategoryCard({ title }: PropsType) {
     (state: RootState) => state.category.deleteStatus
   );
 
+  const navigate = useNavigate();
   useEffect(() => {
     if (deleteStatus === "success" || deleteStatus === "failed") {
       dispatch(clearDeleteCategoryStatus());
       if (deleteStatus === "success") {
-        window.location.reload();
+        navigate("/");
       }
     }
-  }, [deleteStatus, dispatch]);
+  }, [deleteStatus, dispatch, navigate]);
 
   const [removeMdShow, setRemoveMdShow] = useState<boolean>(false);
 
@@ -113,6 +114,20 @@ export default function CategoryCard({ title }: PropsType) {
               close={closeRemoveMd}
               remove={removeCategory}
               loading={deleteStatus === "pending"}
+              customMessage={
+                <>
+                  <p className={styles.warning}>
+                    {
+                      "컨텐츠(프로필, 포스트, 댓글, 대댓글)가 존재하는 카테고리는"
+                    }
+                  </p>
+                  <p className={styles.warning}>
+                    {
+                      "삭제할 수 없으며 카테고리 삭제에 성공하면 홈페이지로 이동됩니다."
+                    }
+                  </p>
+                </>
+              }
             />
           </>
         ) : null}
