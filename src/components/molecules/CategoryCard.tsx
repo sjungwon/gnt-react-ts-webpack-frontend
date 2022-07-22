@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { Card } from "react-bootstrap";
-import { useSelector } from "react-redux";
-import { NavLink } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { NavLink, useNavigate } from "react-router-dom";
 import { getCategoryByTitle } from "../../apis/category";
-import { CategoryType } from "../../redux/modules/category";
-import { RootState } from "../../redux/store";
+import {
+  CategoryType,
+  clearDeleteCategoryStatus,
+  deleteCategoryThunk,
+} from "../../redux/modules/category";
+import { AppDispatch, RootState } from "../../redux/store";
+import DefaultButton from "../atoms/DefaultButton";
+import RemoveConfirmModal from "./RemoveConfirmModal";
 import styles from "./scss/CategoryCard.module.scss";
 
 interface PropsType {
@@ -43,6 +49,37 @@ export default function CategoryCard({ title }: PropsType) {
     getCategory(title);
   }, [title, getCategory]);
 
+  const username = useSelector((state: RootState) => state.auth.username);
+  const dispatch = useDispatch<AppDispatch>();
+  const deleteStatus = useSelector(
+    (state: RootState) => state.category.deleteStatus
+  );
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (deleteStatus === "success" || deleteStatus === "failed") {
+      dispatch(clearDeleteCategoryStatus());
+      if (deleteStatus === "success") {
+        navigate("/");
+      }
+    }
+  }, [deleteStatus, dispatch, navigate]);
+
+  const [removeMdShow, setRemoveMdShow] = useState<boolean>(false);
+
+  const openRemoveMd = useCallback(() => {
+    setRemoveMdShow(true);
+  }, []);
+
+  const closeRemoveMd = useCallback(() => {
+    setRemoveMdShow(false);
+  }, []);
+
+  const removeCategory = useCallback(() => {
+    dispatch(deleteCategoryThunk(category._id));
+    setRemoveMdShow(false);
+  }, [category._id, dispatch]);
+
   return (
     <Card className={styles.container}>
       <Card.Header>
@@ -63,6 +100,37 @@ export default function CategoryCard({ title }: PropsType) {
             "정보 없음"
           )}
         </p>
+        {category.user.username === username ? (
+          <>
+            <DefaultButton
+              size="md"
+              onClick={openRemoveMd}
+              className={styles.btn_margin}
+            >
+              카테고리 제거
+            </DefaultButton>
+            <RemoveConfirmModal
+              show={removeMdShow}
+              close={closeRemoveMd}
+              remove={removeCategory}
+              loading={deleteStatus === "pending"}
+              customMessage={
+                <>
+                  <p className={styles.warning}>
+                    {
+                      "컨텐츠(프로필, 포스트, 댓글, 대댓글)가 존재하는 카테고리는"
+                    }
+                  </p>
+                  <p className={styles.warning}>
+                    {
+                      "삭제할 수 없으며 카테고리 삭제에 성공하면 홈페이지로 이동됩니다."
+                    }
+                  </p>
+                </>
+              }
+            />
+          </>
+        ) : null}
       </Card.Body>
     </Card>
   );

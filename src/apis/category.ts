@@ -26,3 +26,8 @@ export const addCategoryAPI = async (newCategory: string) => {
     title: newCategory,
   });
 };
+
+export const deleteCategoryAPI = async (categoryId: string) => {
+  const path = "/categories/" + categoryId;
+  return APIWithToken.delete<void, AxiosResponse<void>>(path);
+};
