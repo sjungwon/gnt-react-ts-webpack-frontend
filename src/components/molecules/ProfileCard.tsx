@@ -41,7 +41,7 @@ export default function ProfileCard({ profile }: PropsType) {
           게임 :{" "}
           {profile.category.title ? (
             <NavLink
-              to={`/games/${profile.category.title}`}
+              to={`/categories/${profile.category.title}`}
               className={styles.subtitle_link}
             >
               {profile.category.title}
