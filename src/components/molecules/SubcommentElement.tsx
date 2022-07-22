@@ -7,6 +7,7 @@ import ProfileBlock from "./ProfileBlock";
 import CommentCard from "../atoms/CommentCard";
 import DefaultButton from "../atoms/DefaultButton";
 import {
+  blockSubcomment,
   clearModifyContentId,
   deleteSubcomment,
   setModifyContentId,
@@ -15,17 +16,21 @@ import {
 import SubcommentAPI from "../../apis/subcomment";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
+import BlockConfirmModal from "./BlockConfirmModal";
+import useBlockContent from "../../hooks/useBlockContent";
+import { MdOutlineBlock } from "react-icons/md";
+import useHasCategoryProfile from "../../hooks/useHasCategoryProfile";
 
 interface SubcommentElementProps {
   subcomment: SubcommentType;
   deleteSubcommentRenderLengthHandler: () => void;
-  category: string;
+  categoryTitle: string;
 }
 
 export default function SubcommentElement({
   subcomment,
   deleteSubcommentRenderLengthHandler,
-  category,
+  categoryTitle,
 }: SubcommentElementProps) {
   //삭제시 재확인 모달 관련 데이터
   const [showRemoveModal, setShowRemoveModal] = useState(false);
@@ -63,13 +68,42 @@ export default function SubcommentElement({
   );
   const username = useSelector((state: RootState) => state.auth.username);
 
+  const API = async () => {
+    await SubcommentAPI.block(subcomment._id);
+  };
+  const actionCreator = () => {
+    return blockSubcomment({
+      postId: subcomment.postId,
+      commentId: subcomment.commentId,
+      subcommentId: subcomment._id,
+    });
+  };
+
+  const categories = useSelector(
+    (state: RootState) => state.category.categories
+  );
+
+  const subcommentCategory = categories.find(
+    (category) => category.title === subcomment.category.title
+  );
+
+  const {
+    showBlockModal,
+    handleBlockModalClose,
+    handleBlockModalOpen,
+    blockLoading,
+    sendBlockContent,
+  } = useBlockContent({ API, actionCreator, contentType: "댓글" });
+
+  const hasCategoryProfile = useHasCategoryProfile(categoryTitle);
+
   if (modifyContentId === subcomment._id) {
     return (
       <AddSubcomment
         postId={subcomment.postId}
         commentId={subcomment.commentId}
         prevData={subcomment}
-        category={category}
+        categoryTitle={categoryTitle}
         setModeDefault={() => {
           dispatch(clearModifyContentId());
         }}
@@ -85,26 +119,58 @@ export default function SubcommentElement({
           <ProfileBlock profile={subcomment.profile} user={subcomment.user} />
         </CommentCard.Header>
         <CommentCard.Body>
-          <div className={styles.subcomment_text}>{subcomment.text}</div>
+          <div
+            className={`${styles.subcomment_text} ${
+              subcomment.blocked ? styles.warning : ""
+            }`}
+          >
+            {subcomment.text}
+          </div>
           <div className={styles.subcomment_date}>
-            {`${category} - ${new Date(subcomment.createdAt).toLocaleString()}`}
+            {`${categoryTitle} - ${new Date(
+              subcomment.createdAt
+            ).toLocaleString()}`}
           </div>
         </CommentCard.Body>
         <CommentCard.Buttons>
           {username === subcomment.user.username ? (
             <>
+              {!subcomment.blocked ? (
+                <DefaultButton
+                  onClick={() => {
+                    if (!hasCategoryProfile) {
+                      window.alert(
+                        "포스트 카테고리에 포함되는 프로필이 없어 수정할 수 없습니다. 프로필을 추가해주세요."
+                      );
+                      return;
+                    }
+                    dispatch(setModifyContentId(subcomment._id));
+                  }}
+                  size="sm"
+                  className={styles.btn_margin}
+                >
+                  <BsPencilSquare />{" "}
+                  <span className={styles.btn_text}>수정</span>
+                </DefaultButton>
+              ) : null}
               <DefaultButton
-                onClick={() => {
-                  dispatch(setModifyContentId(subcomment._id));
-                }}
+                onClick={handleRemoveModalOpen}
                 size="sm"
                 className={styles.btn_margin}
               >
-                <BsPencilSquare /> <span className={styles.btn_text}>수정</span>
-              </DefaultButton>
-              <DefaultButton onClick={handleRemoveModalOpen} size="sm">
                 <BsTrash /> <span className={styles.btn_text}>삭제</span>
               </DefaultButton>
+              {username === subcommentCategory?.user.username &&
+              !subcomment.blocked ? (
+                <DefaultButton
+                  size="sm"
+                  onClick={handleBlockModalOpen}
+                  className={styles.btn_margin}
+                >
+                  <MdOutlineBlock />{" "}
+                  <span className={styles.comment_btn_text}>차단</span>
+                </DefaultButton>
+              ) : null}
             </>
           ) : null}
         </CommentCard.Buttons>
@@ -114,6 +180,16 @@ export default function SubcommentElement({
           loading={loading}
           remove={removeSubcomment}
         />
+        {username === subcommentCategory?.user.username &&
+        !subcomment.blocked ? (
+          <BlockConfirmModal
+            close={handleBlockModalClose}
+            show={showBlockModal}
+            loading={blockLoading}
+            block={sendBlockContent}
+            contentType="댓글"
+          />
+        ) : null}
       </CommentCard>
     </article>
   );

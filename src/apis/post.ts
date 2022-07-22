@@ -95,6 +95,11 @@ class PostAPI {
     return APIWithToken.delete<void, AxiosResponse<void>, void>(path);
   };
 
+  public blockPost = (postId: string) => {
+    const path = this.path + "/block/" + postId;
+    return APIWithToken.patch<void, AxiosResponse<void>, void>(path);
+  };
+
   public likePost = (postId: string) => {
     const path = this.path + "/likes/" + postId;
     return APIWithToken.patch<PostType, AxiosResponse<PostType>, void>(path);

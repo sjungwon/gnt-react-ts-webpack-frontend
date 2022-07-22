@@ -12,8 +12,6 @@ import HomePage from "./HomePage";
 export default function ProfilePage() {
   const params = useParams();
 
-  console.log(params);
-
   const initialProfile = useSelector(
     (state: RootState) => state.profile.initialProfile
   );
@@ -28,8 +26,12 @@ export default function ProfilePage() {
       if (response.data?._id) {
         setProfile(response.data);
       }
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      if (err?.response?.status !== 404) {
+        window.alert(
+          "프로필 정보를 가져오는데 오류가 발생했습니다. 다시 시도해주세요."
+        );
+      }
     }
   }, [params.id]);
 

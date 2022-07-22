@@ -27,6 +27,7 @@ export interface PostType {
   dislikeUsers: string[];
   comments: CommentType[];
   commentsCount: number;
+  blocked: boolean;
   createdAt: string;
 }
 
@@ -37,10 +38,15 @@ export interface CommentType {
     username: string;
     _id: string;
   };
+  category: {
+    title: string;
+    _id: string;
+  };
   profile: ProfileType | null;
   text: string;
   subcomments: SubcommentType[];
   subcommentsCount: number;
+  blocked: boolean;
   createdAt: string;
 }
 
@@ -52,8 +58,13 @@ export interface SubcommentType {
     username: string;
     _id: string;
   };
+  category: {
+    title: string;
+    _id: string;
+  };
   profile: ProfileType | null;
   text: string;
+  blocked: boolean;
   createdAt: string;
 }
 
@@ -160,6 +171,21 @@ const postSlice = createSlice({
         return post;
       });
     },
+    blockPost: (state: PostState, action: PayloadAction<string>) => {
+      const blockPostId = action.payload;
+      state.posts = state.posts.map((post) => {
+        if (post._id === blockPostId) {
+          return {
+            ...post,
+            text: "차단된 포스트",
+            postImages: [],
+            blocked: true,
+          };
+        }
+
+        return post;
+      });
+    },
     getMoreComments: (
       state: PostState,
       action: PayloadAction<{ postId: string; newComments: CommentType[] }>
@@ -202,6 +228,34 @@ const postSlice = createSlice({
             comments: post.comments.map((comment) => {
               if (comment._id === action.payload.updatedComment._id) {
                 return action.payload.updatedComment;
+              }
+
+              return comment;
+            }),
+          };
+        }
+
+        return post;
+      });
+    },
+    blockComment: (
+      state: PostState,
+      action: PayloadAction<{ postId: string; commentId: string }>
+    ) => {
+      const postId = action.payload.postId;
+      const commentId = action.payload.commentId;
+
+      state.posts = state.posts.map((post) => {
+        if (post._id === postId) {
+          return {
+            ...post,
+            comments: post.comments.map((comment) => {
+              if (comment._id === commentId) {
+                return {
+                  ...comment,
+                  text: "차단된 댓글",
+                  blocked: true,
+                };
               }
 
               return comment;
@@ -323,6 +377,47 @@ const postSlice = createSlice({
         return post;
       });
     },
+    blockSubcomment: (
+      state: PostState,
+      action: PayloadAction<{
+        postId: string;
+        commentId: string;
+        subcommentId: string;
+      }>
+    ) => {
+      const postId = action.payload.postId;
+      const commentId = action.payload.commentId;
+      const subcommentId = action.payload.subcommentId;
+      state.posts = state.posts.map((post) => {
+        if (post._id === postId) {
+          return {
+            ...post,
+            comments: post.comments.map((comment) => {
+              if (comment._id === commentId) {
+                return {
+                  ...comment,
+                  subcomments: comment.subcomments.map((subcomment) => {
+                    if (subcomment._id === subcommentId) {
+                      return {
+                        ...subcomment,
+                        text: "차단된 댓글",
+                        blocked: true,
+                      };
+                    }
+
+                    return subcomment;
+                  }),
+                };
+              }
+
+              return comment;
+            }),
+          };
+        }
+
+        return post;
+      });
+    },
     deleteSubcomment: (
       state: PostState,
       action: PayloadAction<SubcommentType>
@@ -370,7 +465,6 @@ const postSlice = createSlice({
             state.status = "success";
           }
           state.posts = [...state.posts, ...newPosts];
-          console.log(action.payload);
         }
       )
       .addCase(getPostThunk.rejected, (state, action) => {
@@ -389,7 +483,6 @@ const postSlice = createSlice({
             state.status = "success";
           }
           state.posts = [...state.posts, ...newPosts];
-          console.log(action.payload);
         }
       )
       .addCase(getPostByCategoryThunk.rejected, (state, action) => {
@@ -408,7 +501,6 @@ const postSlice = createSlice({
             state.status = "success";
           }
           state.posts = [...state.posts, ...newPosts];
-          console.log(action.payload);
         }
       )
       .addCase(getPostByProfileThunk.rejected, (state, action) => {
@@ -427,7 +519,6 @@ const postSlice = createSlice({
             state.status = "success";
           }
           state.posts = [...state.posts, ...newPosts];
-          console.log(action.payload);
         }
       )
       .addCase(getPostByUsernameThunk.rejected, (state, action) => {
@@ -501,6 +592,9 @@ export const {
   createSubcomments,
   updateSubcomment,
   deleteSubcomment,
+  blockPost,
+  blockComment,
+  blockSubcomment,
 } = postSlice.actions;
 
 export default postSlice.reducer;

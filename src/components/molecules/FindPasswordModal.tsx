@@ -56,7 +56,6 @@ const FindPasswordModal: FC<PropsType> = ({ show, close }) => {
         "사용자 정보가 확인되었습니다. 변경하실 비밀번호를 입력해주세요."
       );
     } catch (err: any) {
-      console.log(err);
       setSubmitMsg(
         "등록된 사용자가 아니거나 잘못 입력하셨습니다. 입력하신 사용자 이름을 확인해주세요."
       );

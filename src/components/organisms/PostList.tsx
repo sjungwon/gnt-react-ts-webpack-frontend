@@ -34,7 +34,6 @@ export default function PostList({ type, params }: PropsType) {
   );
 
   const sendQuery = useCallback(async () => {
-    console.log(status);
     if (status !== "done" && status !== "failed" && status !== "pending") {
       const lastPostDate = posts.length
         ? posts[posts.length - 1].createdAt
@@ -124,7 +123,6 @@ export default function PostList({ type, params }: PropsType) {
     if (savedLoader) observer.observe(savedLoader);
     return () => {
       if (savedLoader) observer.unobserve(savedLoader);
-      console.log("unobserve");
     };
   }, [handleObserver]);
 

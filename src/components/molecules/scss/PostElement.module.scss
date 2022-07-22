@@ -99,6 +99,9 @@ div.card_body {
     white-space: pre-wrap;
     margin-bottom: 0;
   }
+  .warning {
+    color: red;
+  }
   .card_body_text_more {
     color: $primary-blue;
     cursor: pointer;
@@ -112,7 +115,7 @@ div.card_body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 95%;
+  width: 100%;
   margin: 0 auto;
   margin-top: 1rem;
   .btn_icon {

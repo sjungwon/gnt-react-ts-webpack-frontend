@@ -14,6 +14,7 @@ import { NavLink } from "react-router-dom";
 import DefaultButton from "../atoms/DefaultButton";
 import ProfileBlock from "./ProfileBlock";
 import {
+  blockPost,
   clearDeletePostStatus,
   clearModifyContentId,
   deletePostThunk,
@@ -28,6 +29,9 @@ import CommentList from "./CommentList";
 import CommentsButton from "../atoms/CommentsButton";
 import { GoTriangleUp, GoTriangleDown } from "react-icons/go";
 import useHasCategoryProfile from "../../hooks/useHasCategoryProfile";
+import PostAPI from "../../apis/post";
+import BlockConfirmModal from "./BlockConfirmModal";
+import useBlockContent from "../../hooks/useBlockContent";
 
 interface PropsType {
   post: PostType;
@@ -86,9 +90,31 @@ export default function PostElement({ post }: PropsType) {
     (state: RootState) => state.post.deletePostStatus
   );
 
-  const sendRemovePost = useCallback(async () => {
+  const sendRemovePost = useCallback(() => {
     dispatch(deletePostThunk(post._id));
   }, [dispatch, post._id]);
+
+  const categories = useSelector(
+    (state: RootState) => state.category.categories
+  );
+  const postCategory = categories.find(
+    (category) => category.title === post.category.title
+  );
+
+  const API = async () => {
+    await PostAPI.blockPost(post._id);
+  };
+  const actionCreator = () => {
+    return blockPost(post._id);
+  };
+
+  const {
+    showBlockModal,
+    handleBlockModalClose,
+    handleBlockModalOpen,
+    blockLoading,
+    sendBlockContent,
+  } = useBlockContent({ API, actionCreator, contentType: "포스트" });
 
   const hasCategoryProfile = useHasCategoryProfile(post.category.title);
   //포스트 관리 함수 -> 수정, 제거 선택
@@ -107,8 +133,17 @@ export default function PostElement({ post }: PropsType) {
         handleRemoveModalOpen();
         return;
       }
+      if (eventKey === "3") {
+        handleBlockModalOpen();
+      }
     },
-    [dispatch, handleRemoveModalOpen, hasCategoryProfile, post._id]
+    [
+      dispatch,
+      handleBlockModalOpen,
+      handleRemoveModalOpen,
+      hasCategoryProfile,
+      post._id,
+    ]
   );
 
   //텍스트 제한 관련 데이터
@@ -178,7 +213,8 @@ export default function PostElement({ post }: PropsType) {
               </Card.Subtitle>
             </ProfileBlock>
           </div>
-          {username === post.user.username ? (
+          {username === post.user.username ||
+          (username === postCategory?.user.username && !post.blocked) ? (
             <div className={styles.card_header_menu}>
               <DefaultButton onClick={menuClick} size="xs">
                 ...
@@ -193,8 +229,17 @@ export default function PostElement({ post }: PropsType) {
                   ref={menuRef}
                 ></Dropdown.Toggle>
                 <Dropdown.Menu className={styles.header_menu_items}>
-                  <Dropdown.Item eventKey="1">수정</Dropdown.Item>
-                  <Dropdown.Item eventKey="2">삭제</Dropdown.Item>
+                  {username === post.user.username ? (
+                    <>
+                      {!post.blocked ? (
+                        <Dropdown.Item eventKey="1">수정</Dropdown.Item>
+                      ) : null}
+                      <Dropdown.Item eventKey="2">삭제</Dropdown.Item>
+                    </>
+                  ) : null}
+                  {username === postCategory?.user.username && !post.blocked ? (
+                    <Dropdown.Item eventKey="3">차단</Dropdown.Item>
+                  ) : null}
                 </Dropdown.Menu>
               </Dropdown>
             </div>
@@ -204,7 +249,11 @@ export default function PostElement({ post }: PropsType) {
           {post.postImages.length > 0 ? (
             <ImageSlide images={post.postImages} expandable />
           ) : null}
-          <Card.Text className={styles.card_body_text}>
+          <Card.Text
+            className={`${styles.card_body_text} ${
+              post.blocked ? styles.warning : ""
+            }`}
+          >
             {post.text.slice(0, showTextLength)}
           </Card.Text>
           {post.postImages.length && post.text.length > 100 ? (
@@ -253,7 +302,7 @@ export default function PostElement({ post }: PropsType) {
             showComment={showComment}
             comments={post.comments}
             commentsCount={post.commentsCount}
-            category={post.category.title}
+            categoryTitle={post.category.title}
           />
           {post.commentsCount > 1 ||
           (post.comments.length && post.comments[0].subcommentsCount) ? (
@@ -274,12 +323,23 @@ export default function PostElement({ post }: PropsType) {
             <div className={styles.blank}></div>
           )}
         </Card.Footer>
-        <RemoveConfirmModal
-          close={handleRemoveModalClose}
-          show={showRemoveModal}
-          loading={deletePostStatus === "pending"}
-          remove={sendRemovePost}
-        />
+        {username === post.user.username ? (
+          <RemoveConfirmModal
+            close={handleRemoveModalClose}
+            show={showRemoveModal}
+            loading={deletePostStatus === "pending"}
+            remove={sendRemovePost}
+          />
+        ) : null}
+        {username === postCategory?.user.username && !post.blocked ? (
+          <BlockConfirmModal
+            close={handleBlockModalClose}
+            show={showBlockModal}
+            loading={blockLoading}
+            block={sendBlockContent}
+            contentType="포스트"
+          />
+        ) : null}
       </Card>
     </article>
   );

@@ -13,7 +13,7 @@ import { AppDispatch } from "../../redux/store";
 interface PropsType {
   postId: string;
   commentId: string;
-  category: string;
+  categoryTitle: string;
   subcomments: SubcommentType[];
   subcommentsCount: number;
   addSubcomment: boolean;
@@ -23,7 +23,7 @@ interface PropsType {
 export default function SubcommentList({
   postId,
   commentId,
-  category,
+  categoryTitle,
   subcomments,
   subcommentsCount,
   addSubcomment,
@@ -52,7 +52,7 @@ export default function SubcommentList({
         setRenderLength((prev) => prev + newSubcomments.length);
         setLoading(false);
       } catch {
-        console.log(
+        window.alert(
           "대댓글을 가져오는데 오류가 발생했습니다. 다시 시도해주세요."
         );
         setLoading(false);
@@ -91,7 +91,7 @@ export default function SubcommentList({
         <AddSubcomment
           postId={postId}
           commentId={commentId}
-          category={category}
+          categoryTitle={categoryTitle}
           addSubcommentRenderLengthHandler={addSubcommentRenderLengthHandler}
           setModeDefault={setModeDefault}
         />
@@ -106,7 +106,7 @@ export default function SubcommentList({
         <AddSubcomment
           postId={postId}
           commentId={commentId}
-          category={category}
+          categoryTitle={categoryTitle}
           addSubcommentRenderLengthHandler={addSubcommentRenderLengthHandler}
           setModeDefault={setModeDefault}
         />
@@ -116,7 +116,7 @@ export default function SubcommentList({
           <SubcommentElement
             key={subcomment._id}
             subcomment={subcomment}
-            category={category}
+            categoryTitle={categoryTitle}
             deleteSubcommentRenderLengthHandler={
               deleteSubcommentRenderLengthHandler
             }
