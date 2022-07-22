@@ -74,7 +74,6 @@ export const authSlice = createSlice({
         state.loginStatus = "pending";
       })
       .addCase(signinThunk.fulfilled, (state, action) => {
-        console.log("fullfiled", action.payload);
         state.loginStatus = "success";
         state.username = action.payload.userData.username;
         state.userId = action.payload.userData.id;
@@ -101,7 +100,6 @@ export const authSlice = createSlice({
         state.registerStatus = "success";
       })
       .addCase(signupThunk.rejected, (state, action) => {
-        console.log(action.error);
         state.registerStatus = "failed";
         switch (action.error.message) {
           case "exist email":

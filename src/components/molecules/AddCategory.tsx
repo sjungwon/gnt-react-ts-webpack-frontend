@@ -2,7 +2,10 @@ import { FC, useCallback, useEffect, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { isIncludePathSpecial } from "../../functions/TextValidFunc";
-import { addCategoryThunk } from "../../redux/modules/category";
+import {
+  addCategoryThunk,
+  clearAddCategoryStatus,
+} from "../../redux/modules/category";
 import { AppDispatch, RootState } from "../../redux/store";
 import DefaultButton from "../atoms/DefaultButton";
 import DefaultTextInput from "../atoms/DefaultTextInput";
@@ -24,12 +27,15 @@ const AddCategory: FC<PropsType> = ({ show, close }) => {
   useEffect(() => {
     if (addStatus === "failed") {
       window.alert("게임 카테고리 추가에 실패했습니다. 다시 시도해주세요.");
-    }
-    if (addStatus === "success") {
-      window.alert("게임 카테고리 추가에 성공했습니다.");
+      dispatch(clearAddCategoryStatus());
       return;
     }
-  }, [addStatus]);
+    if (addStatus === "success") {
+      dispatch(clearAddCategoryStatus());
+      close();
+      return;
+    }
+  }, [addStatus, close, dispatch]);
 
   const categoryInputRef = useRef<HTMLInputElement>(null);
 

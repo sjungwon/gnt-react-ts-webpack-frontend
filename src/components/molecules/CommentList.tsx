@@ -13,7 +13,7 @@ import CommentAPI from "../../apis/comment";
 
 interface CommentElementProps {
   postId: string;
-  category: string;
+  categoryTitle: string;
   showComment: boolean;
   comments: CommentType[];
   commentsCount: number;
@@ -21,7 +21,7 @@ interface CommentElementProps {
 
 export default function CommentList({
   postId,
-  category,
+  categoryTitle,
   showComment,
   comments,
   commentsCount,
@@ -47,7 +47,7 @@ export default function CommentList({
         setRenderLength((prev) => prev + newComments.length);
         setLoading(false);
       } catch {
-        console.log(
+        window.alert(
           "댓글을 가져오는데 오류가 발생했습니다. 다시 시도해주세요."
         );
         setLoading(false);
@@ -85,8 +85,7 @@ export default function CommentList({
           <CommentElement
             key={comments[0]._id}
             comment={comments[0]}
-            category={category}
-            borderBottom={false}
+            categoryTitle={categoryTitle}
             parentShowComment={showComment}
             removeCommentRenderLengthHandler={removeCommentRenderLengthHandler}
           />
@@ -100,7 +99,7 @@ export default function CommentList({
     <>
       <AddComment
         postId={postId}
-        category={category}
+        categoryTitle={categoryTitle}
         addCommentRenderLengthHandler={addCommentRenderLengthHandler}
       />
       {comments.slice(0, renderLength).map((comment, i) => {
@@ -108,9 +107,8 @@ export default function CommentList({
           <CommentElement
             key={comment._id}
             comment={comment}
-            borderBottom={true}
             parentShowComment={showComment}
-            category={category}
+            categoryTitle={categoryTitle}
             removeCommentRenderLengthHandler={removeCommentRenderLengthHandler}
           />
         );

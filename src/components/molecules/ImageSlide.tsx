@@ -36,7 +36,6 @@ export default function ImageSlide({
     },
     [setIndex]
   );
-  console.log(images);
 
   //index가 변했을 때 = 이미지가 제거되거나 추가될 때
   //index 오류 방지를 위해 0으로 설정
@@ -68,7 +67,6 @@ export default function ImageSlide({
     [expandable, scrollLock]
   );
   const close = useCallback(() => {
-    console.log(close);
     setExpandURL("");
     scrollRelease();
   }, [scrollRelease]);

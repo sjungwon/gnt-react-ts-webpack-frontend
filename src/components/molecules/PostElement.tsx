@@ -14,6 +14,7 @@ import { NavLink } from "react-router-dom";
 import DefaultButton from "../atoms/DefaultButton";
 import ProfileBlock from "./ProfileBlock";
 import {
+  blockPost,
   clearDeletePostStatus,
   clearModifyContentId,
   deletePostThunk,
@@ -28,6 +29,9 @@ import CommentList from "./CommentList";
 import CommentsButton from "../atoms/CommentsButton";
 import { GoTriangleUp, GoTriangleDown } from "react-icons/go";
 import useHasCategoryProfile from "../../hooks/useHasCategoryProfile";
+import PostAPI from "../../apis/post";
+import BlockConfirmModal from "./BlockConfirmModal";
+import useBlockContent from "../../hooks/useBlockContent";
 
 interface PropsType {
   post: PostType;
@@ -86,9 +90,31 @@ export default function PostElement({ post }: PropsType) {
     (state: RootState) => state.post.deletePostStatus
   );
 
-  const sendRemovePost = useCallback(async () => {
+  const sendRemovePost = useCallback(() => {
     dispatch(deletePostThunk(post._id));
   }, [dispatch, post._id]);
+
+  const categories = useSelector(
+    (state: RootState) => state.category.categories
+  );
+  const postCategory = categories.find(
+    (category) => category.title === post.category.title
+  );
+
+  const API = async () => {
+    await PostAPI.blockPost(post._id);
+  };
+  const actionCreator = () => {
+    return blockPost(post._id);
+  };
+
+  const {
+    showBlockModal,
+    handleBlockModalClose,
+    handleBlockModalOpen,
+    blockLoading,
+    sendBlockContent,
+  } = useBlockContent({ API, actionCreator, contentType: "포스트" });
 
   const hasCategoryProfile = useHasCategoryProfile(post.category.title);
   //포스트 관리 함수 -> 수정, 제거 선택
@@ -107,8 +133,17 @@ export default function PostElement({ post }: PropsType) {
         handleRemoveModalOpen();
         return;
       }
+      if (eventKey === "3") {
+        handleBlockModalOpen();
+      }
     },
-    [dispatch, handleRemoveModalOpen, hasCategoryProfile, post._id]
+    [
+      dispatch,
+      handleBlockModalOpen,
+      handleRemoveModalOpen,
+      hasCategoryProfile,
+      post._id,
+    ]
   );
 
   //텍스트 제한 관련 데이터
@@ -158,128 +193,154 @@ export default function PostElement({ post }: PropsType) {
   }
 
   return (
-    <Card className={styles.card}>
-      <Card.Header className={styles.card_header}>
-        <Card.Title className={styles.card_header_game}>
-          <NavLink
-            to={`/games/${post.category.title}`}
-            className={styles.nav_link}
-          >
-            {post.category.title}
-          </NavLink>
-        </Card.Title>
-        <div className={styles.card_header_profile}>
-          <ProfileBlock profile={post.profile} user={post.user} size="lg">
-            <Card.Subtitle className={styles.card_header_subtitle}>
-              {post.createdAt ? new Date(post.createdAt).toLocaleString() : ""}
-            </Card.Subtitle>
-          </ProfileBlock>
-        </div>
-        {username === post.user.username ? (
-          <div className={styles.card_header_menu}>
-            <DefaultButton onClick={menuClick} size="xs">
-              ...
-            </DefaultButton>
-            <Dropdown onSelect={select} bsPrefix={styles.header_menu_container}>
-              <Dropdown.Toggle
-                id="dropdown-basic"
-                className={styles.header_menu_container}
-                ref={menuRef}
-              ></Dropdown.Toggle>
-              <Dropdown.Menu className={styles.header_menu_items}>
-                <Dropdown.Item eventKey="1">수정</Dropdown.Item>
-                <Dropdown.Item eventKey="2">삭제</Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
+    <article>
+      <Card className={styles.card}>
+        <Card.Header className={styles.card_header}>
+          <Card.Title className={styles.card_header_game}>
+            <NavLink
+              to={`/categories/${post.category.title}`}
+              className={styles.nav_link}
+            >
+              {post.category.title}
+            </NavLink>
+          </Card.Title>
+          <div className={styles.card_header_profile}>
+            <ProfileBlock profile={post.profile} user={post.user} size="lg">
+              <Card.Subtitle className={styles.card_header_subtitle}>
+                {post.createdAt
+                  ? new Date(post.createdAt).toLocaleString()
+                  : ""}
+              </Card.Subtitle>
+            </ProfileBlock>
           </div>
-        ) : null}
-      </Card.Header>
-      <Card.Body className={`${styles.card_body}`}>
-        {post.postImages.length > 0 ? (
-          <ImageSlide images={post.postImages} expandable />
-        ) : null}
-        <Card.Text className={styles.card_body_text}>
-          {post.text.slice(0, showTextLength)}
-        </Card.Text>
-        {post.postImages.length && post.text.length > 100 ? (
-          <p className={styles.card_body_text_more} onClick={showMore}>
-            {textMore ? " 접기" : " 더보기"}
-          </p>
-        ) : null}
-        {!post.postImages.length && post.text.length > 200 ? (
-          <p className={styles.card_body_text_more} onClick={showMore}>
-            {textMore ? " 접기" : " 더보기"}
-          </p>
-        ) : null}
-        <div className={styles.card_body_buttons}>
-          <DefaultButton onClick={postLike} size="lg">
-            {post.likeUsers.includes(userId) ? (
-              <BsHandThumbsUpFill className={styles.btn_icon} />
-            ) : (
-              <BsHandThumbsUp />
-            )}
-            <p className={styles.btn_text}>좋아요</p>
-            <p className={styles.btn_badge}>{post.likes}</p>
-          </DefaultButton>
-          <CommentsButton
-            onClick={commentHandler}
-            size="lg"
-            active={showComment}
-          ></CommentsButton>
-          <DefaultButton onClick={postDislike} size="lg">
-            {post.dislikeUsers.includes(userId) ? (
-              <BsHandThumbsDownFill className={styles.btn_icon} />
-            ) : (
-              <BsHandThumbsDown />
-            )}
-            <p className={styles.btn_text}>싫어요</p>
-            <p className={styles.btn_badge}>{post.dislikes}</p>
-          </DefaultButton>
-        </div>
-      </Card.Body>
-      <Card.Footer
-        // className={`${styles.card_footer} ${
-        //   post.comments.length ? "" : styles.card_footer_no_border
-        // }`}
-        className={styles.card_footer}
-      >
-        <CommentList
-          postId={post._id}
-          showComment={showComment}
-          comments={post.comments}
-          commentsCount={post.commentsCount}
-          category={post.category.title}
-        />
-        {/* {comments.length > 1 ||
-          (comments.length && comments[0].subcomments.length) ? (
-            <div className={styles.direct} onClick={openComments}>
-              <div className={styles.direct_icon}>
-                <GoTriangleDown />
-              </div>
+          {username === post.user.username ||
+          (username === postCategory?.user.username && !post.blocked) ? (
+            <div className={styles.card_header_menu}>
+              <DefaultButton onClick={menuClick} size="xs">
+                ...
+              </DefaultButton>
+              <Dropdown
+                onSelect={select}
+                bsPrefix={styles.header_menu_container}
+              >
+                <Dropdown.Toggle
+                  id="dropdown-basic"
+                  className={styles.header_menu_container}
+                  ref={menuRef}
+                ></Dropdown.Toggle>
+                <Dropdown.Menu className={styles.header_menu_items}>
+                  {username === post.user.username ? (
+                    <>
+                      {!post.blocked ? (
+                        <Dropdown.Item eventKey="1">수정</Dropdown.Item>
+                      ) : null}
+                      <Dropdown.Item eventKey="2">삭제</Dropdown.Item>
+                    </>
+                  ) : null}
+                  {username === postCategory?.user.username && !post.blocked ? (
+                    <Dropdown.Item eventKey="3">차단</Dropdown.Item>
+                  ) : null}
+                </Dropdown.Menu>
+              </Dropdown>
             </div>
+          ) : null}
+        </Card.Header>
+        <Card.Body className={`${styles.card_body}`}>
+          {post.postImages.length > 0 ? (
+            <ImageSlide images={post.postImages} expandable />
+          ) : null}
+          <Card.Text
+            className={`${styles.card_body_text} ${
+              post.blocked ? styles.warning : ""
+            }`}
+          >
+            {post.text.slice(0, showTextLength)}
+          </Card.Text>
+          {post.postImages.length && post.text.length > 100 ? (
+            <p className={styles.card_body_text_more} onClick={showMore}>
+              {textMore ? " 접기" : " 더보기"}
+            </p>
+          ) : null}
+          {!post.postImages.length && post.text.length > 200 ? (
+            <p className={styles.card_body_text_more} onClick={showMore}>
+              {textMore ? " 접기" : " 더보기"}
+            </p>
+          ) : null}
+          <div className={styles.card_body_buttons}>
+            <DefaultButton onClick={postLike} size="lg">
+              {post.likeUsers.includes(userId) ? (
+                <BsHandThumbsUpFill className={styles.btn_icon} />
+              ) : (
+                <BsHandThumbsUp />
+              )}
+              <p className={styles.btn_text}>좋아요</p>
+              <p className={styles.btn_badge}>{post.likes}</p>
+            </DefaultButton>
+            <CommentsButton
+              onClick={commentHandler}
+              size="lg"
+              active={showComment}
+            ></CommentsButton>
+            <DefaultButton onClick={postDislike} size="lg">
+              {post.dislikeUsers.includes(userId) ? (
+                <BsHandThumbsDownFill className={styles.btn_icon} />
+              ) : (
+                <BsHandThumbsDown />
+              )}
+              <p className={styles.btn_text}>싫어요</p>
+              <p className={styles.btn_badge}>{post.dislikes}</p>
+            </DefaultButton>
+          </div>
+        </Card.Body>
+        <Card.Footer
+          className={`${styles.card_footer} ${
+            post.commentsCount ? "" : styles.card_footer_no_border
+          }`}
+        >
+          <CommentList
+            postId={post._id}
+            showComment={showComment}
+            comments={post.comments}
+            commentsCount={post.commentsCount}
+            categoryTitle={post.category.title}
+          />
+          {post.commentsCount > 1 ||
+          (post.comments.length && post.comments[0].subcommentsCount) ? (
+            showComment ? (
+              <div className={styles.direct} onClick={commentHandler}>
+                <div className={styles.direct_icon}>
+                  <GoTriangleUp />
+                </div>
+              </div>
+            ) : (
+              <div className={styles.direct} onClick={commentHandler}>
+                <div className={styles.direct_icon}>
+                  <GoTriangleDown />
+                </div>
+              </div>
+            )
           ) : (
             <div className={styles.blank}></div>
-          )} */}
-        {showComment ? (
-          <div className={styles.direct} onClick={commentHandler}>
-            <div className={styles.direct_icon}>
-              <GoTriangleUp />
-            </div>
-          </div>
-        ) : (
-          <div className={styles.direct} onClick={commentHandler}>
-            <div className={styles.direct_icon}>
-              <GoTriangleDown />
-            </div>
-          </div>
-        )}
-      </Card.Footer>
-      <RemoveConfirmModal
-        close={handleRemoveModalClose}
-        show={showRemoveModal}
-        loading={deletePostStatus === "pending"}
-        remove={sendRemovePost}
-      />
-    </Card>
+          )}
+        </Card.Footer>
+        {username === post.user.username ? (
+          <RemoveConfirmModal
+            close={handleRemoveModalClose}
+            show={showRemoveModal}
+            loading={deletePostStatus === "pending"}
+            remove={sendRemovePost}
+          />
+        ) : null}
+        {username === postCategory?.user.username && !post.blocked ? (
+          <BlockConfirmModal
+            close={handleBlockModalClose}
+            show={showBlockModal}
+            loading={blockLoading}
+            block={sendBlockContent}
+            contentType="포스트"
+          />
+        ) : null}
+      </Card>
+    </article>
   );
 }

@@ -27,6 +27,7 @@ export interface PostType {
   dislikeUsers: string[];
   comments: CommentType[];
   commentsCount: number;
+  blocked: boolean;
   createdAt: string;
 }
 
@@ -37,10 +38,15 @@ export interface CommentType {
     username: string;
     _id: string;
   };
+  category: {
+    title: string;
+    _id: string;
+  };
   profile: ProfileType | null;
   text: string;
   subcomments: SubcommentType[];
   subcommentsCount: number;
+  blocked: boolean;
   createdAt: string;
 }
 
@@ -52,8 +58,13 @@ export interface SubcommentType {
     username: string;
     _id: string;
   };
+  category: {
+    title: string;
+    _id: string;
+  };
   profile: ProfileType | null;
   text: string;
+  blocked: boolean;
   createdAt: string;
 }
 
@@ -61,7 +72,6 @@ type StatusType = "idle" | "pending" | "success" | "failed" | "done";
 
 interface PostState {
   status: StatusType;
-  lastPostDate: string;
   posts: PostType[];
   modifyContentId: "addPost" | string;
   deletePostStatus: "idle" | "pending" | "success" | "failed";
@@ -69,7 +79,6 @@ interface PostState {
 
 const initialState: PostState = {
   status: "idle",
-  lastPostDate: "",
   posts: [],
   modifyContentId: "",
   deletePostStatus: "idle",
@@ -77,8 +86,32 @@ const initialState: PostState = {
 
 export const getPostThunk = createAsyncThunk(
   "post/get",
-  async (lastPostData?: string) => {
-    const response = await PostAPI.get(lastPostData);
+  async (lastPostDate?: string) => {
+    const response = await PostAPI.get(lastPostDate);
+    return response.data;
+  }
+);
+
+export const getPostByCategoryThunk = createAsyncThunk(
+  "post/getByCategory",
+  async (data: { categoryId: string; lastPostDate?: string }) => {
+    const response = await PostAPI.getByCategoryId(data);
+    return response.data;
+  }
+);
+
+export const getPostByProfileThunk = createAsyncThunk(
+  "post/getByProfile",
+  async (data: { profileId: string; lastPostDate?: string }) => {
+    const response = await PostAPI.getByProfileId(data);
+    return response.data;
+  }
+);
+
+export const getPostByUsernameThunk = createAsyncThunk(
+  "post/getByUsername",
+  async (data: { username: string; lastPostDate?: string }) => {
+    const response = await PostAPI.getByUsername(data);
     return response.data;
   }
 );
@@ -121,6 +154,10 @@ const postSlice = createSlice({
     clearDeletePostStatus: (state: PostState) => {
       state.deletePostStatus = "idle";
     },
+    clearPosts: (state: PostState) => {
+      state.posts = [];
+      state.status = "idle";
+    },
     createPost: (state: PostState, action: PayloadAction<PostType>) => {
       const newPost = action.payload;
       state.posts = [newPost, ...state.posts];
@@ -131,6 +168,21 @@ const postSlice = createSlice({
         if (post._id === updatedPost._id) {
           return updatedPost;
         }
+        return post;
+      });
+    },
+    blockPost: (state: PostState, action: PayloadAction<string>) => {
+      const blockPostId = action.payload;
+      state.posts = state.posts.map((post) => {
+        if (post._id === blockPostId) {
+          return {
+            ...post,
+            text: "차단된 포스트",
+            postImages: [],
+            blocked: true,
+          };
+        }
+
         return post;
       });
     },
@@ -176,6 +228,34 @@ const postSlice = createSlice({
             comments: post.comments.map((comment) => {
               if (comment._id === action.payload.updatedComment._id) {
                 return action.payload.updatedComment;
+              }
+
+              return comment;
+            }),
+          };
+        }
+
+        return post;
+      });
+    },
+    blockComment: (
+      state: PostState,
+      action: PayloadAction<{ postId: string; commentId: string }>
+    ) => {
+      const postId = action.payload.postId;
+      const commentId = action.payload.commentId;
+
+      state.posts = state.posts.map((post) => {
+        if (post._id === postId) {
+          return {
+            ...post,
+            comments: post.comments.map((comment) => {
+              if (comment._id === commentId) {
+                return {
+                  ...comment,
+                  text: "차단된 댓글",
+                  blocked: true,
+                };
               }
 
               return comment;
@@ -297,6 +377,47 @@ const postSlice = createSlice({
         return post;
       });
     },
+    blockSubcomment: (
+      state: PostState,
+      action: PayloadAction<{
+        postId: string;
+        commentId: string;
+        subcommentId: string;
+      }>
+    ) => {
+      const postId = action.payload.postId;
+      const commentId = action.payload.commentId;
+      const subcommentId = action.payload.subcommentId;
+      state.posts = state.posts.map((post) => {
+        if (post._id === postId) {
+          return {
+            ...post,
+            comments: post.comments.map((comment) => {
+              if (comment._id === commentId) {
+                return {
+                  ...comment,
+                  subcomments: comment.subcomments.map((subcomment) => {
+                    if (subcomment._id === subcommentId) {
+                      return {
+                        ...subcomment,
+                        text: "차단된 댓글",
+                        blocked: true,
+                      };
+                    }
+
+                    return subcomment;
+                  }),
+                };
+              }
+
+              return comment;
+            }),
+          };
+        }
+
+        return post;
+      });
+    },
     deleteSubcomment: (
       state: PostState,
       action: PayloadAction<SubcommentType>
@@ -342,13 +463,65 @@ const postSlice = createSlice({
             state.status = "done";
           } else {
             state.status = "success";
-            state.lastPostDate = newPosts[newPosts.length - 1].createdAt;
           }
           state.posts = [...state.posts, ...newPosts];
-          console.log(action.payload);
         }
       )
       .addCase(getPostThunk.rejected, (state, action) => {
+        state.status = "failed";
+      })
+      .addCase(getPostByCategoryThunk.pending, (state, action) => {
+        state.status = "pending";
+      })
+      .addCase(
+        getPostByCategoryThunk.fulfilled,
+        (state, action: PayloadAction<PostType[]>) => {
+          const newPosts = action.payload;
+          if (!newPosts.length) {
+            state.status = "done";
+          } else {
+            state.status = "success";
+          }
+          state.posts = [...state.posts, ...newPosts];
+        }
+      )
+      .addCase(getPostByCategoryThunk.rejected, (state, action) => {
+        state.status = "failed";
+      })
+      .addCase(getPostByProfileThunk.pending, (state, action) => {
+        state.status = "pending";
+      })
+      .addCase(
+        getPostByProfileThunk.fulfilled,
+        (state, action: PayloadAction<PostType[]>) => {
+          const newPosts = action.payload;
+          if (!newPosts.length) {
+            state.status = "done";
+          } else {
+            state.status = "success";
+          }
+          state.posts = [...state.posts, ...newPosts];
+        }
+      )
+      .addCase(getPostByProfileThunk.rejected, (state, action) => {
+        state.status = "failed";
+      })
+      .addCase(getPostByUsernameThunk.pending, (state, action) => {
+        state.status = "pending";
+      })
+      .addCase(
+        getPostByUsernameThunk.fulfilled,
+        (state, action: PayloadAction<PostType[]>) => {
+          const newPosts = action.payload;
+          if (!newPosts.length) {
+            state.status = "done";
+          } else {
+            state.status = "success";
+          }
+          state.posts = [...state.posts, ...newPosts];
+        }
+      )
+      .addCase(getPostByUsernameThunk.rejected, (state, action) => {
         state.status = "failed";
       })
       .addCase(deletePostThunk.pending, (state, action) => {
@@ -405,6 +578,7 @@ const postSlice = createSlice({
 });
 
 export const {
+  clearPosts,
   setModifyContentId,
   clearModifyContentId,
   clearDeletePostStatus,
@@ -418,6 +592,9 @@ export const {
   createSubcomments,
   updateSubcomment,
   deleteSubcomment,
+  blockPost,
+  blockComment,
+  blockSubcomment,
 } = postSlice.actions;
 
 export default postSlice.reducer;

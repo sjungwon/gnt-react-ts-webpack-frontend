@@ -24,14 +24,14 @@ import NeedProfileBlock from "../atoms/NeedProfileBlock";
 
 interface PropsType {
   postId: string;
-  category: string;
+  categoryTitle: string;
   prevData?: CommentType;
   addCommentRenderLengthHandler?: () => void;
 }
 
 export default function AddComment({
   postId,
-  category,
+  categoryTitle,
   prevData,
   addCommentRenderLengthHandler,
 }: // prevData,
@@ -52,6 +52,10 @@ PropsType) {
   const dispatch = useDispatch<AppDispatch>();
 
   const [loading, setLoading] = useState<boolean>(false);
+
+  const categories = useSelector(
+    (state: RootState) => state.category.categories
+  );
 
   const clickToSubmit = useCallback(async () => {
     const text = textAreaRef.current ? textAreaRef.current.value.trim() : "";
@@ -89,8 +93,19 @@ PropsType) {
       setLoading(false);
       return;
     }
+    const findedCategory = categories.find(
+      (category) => category.title === categoryTitle
+    );
+    if (!findedCategory) {
+      window.alert(
+        "포스트를 추가하는데 오류가 발생했습니다. 다시 시도해주세요."
+      );
+      setLoading(false);
+      return;
+    }
     const submitData: AddCommentReqData = {
       postId,
+      category: findedCategory._id,
       profile: currentProfile._id,
       text,
     };
@@ -112,6 +127,8 @@ PropsType) {
     setLoading(false);
   }, [
     addCommentRenderLengthHandler,
+    categories,
+    categoryTitle,
     currentProfile,
     dispatch,
     postId,
@@ -122,7 +139,7 @@ PropsType) {
     <CommentCard borderBottom={!prevData}>
       <NeedLoginBlock requiredMessage="댓글을 작성하려면 ">
         <NeedProfileBlock
-          category={category}
+          categoryTitle={categoryTitle}
           requiredMessage="댓글을 작성하려면 카테고리에 맞는 "
         >
           <CommentCard.Header>
@@ -130,7 +147,7 @@ PropsType) {
             <ProfileSelector
               size={"sm"}
               setCurrentProfile={setCurrentProfile}
-              category={category}
+              category={categoryTitle}
             />
           </CommentCard.Header>
           <CommentCard.Body>

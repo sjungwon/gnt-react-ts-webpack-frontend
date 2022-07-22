@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import useViewportSize from "./useViewportSize";
 
-export function useIsMobile() {
+export default function useIsMobile() {
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
   const viewSize = useViewportSize();

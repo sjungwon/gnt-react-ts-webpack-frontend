@@ -10,7 +10,7 @@ interface PropsType {
 }
 
 export default function UserCard({ username }: PropsType) {
-  const [profiles, setProfiles] = useState<ProfileType[] | null>(null);
+  const [profiles, setProfiles] = useState<ProfileType[] | null>([]);
 
   const getProfile = useCallback(async () => {
     try {
@@ -24,20 +24,24 @@ export default function UserCard({ username }: PropsType) {
         window.alert(
           `${username}의 데이터를 가져오는데 오류가 발생했습니다. 다시 시도해주세요.`
         );
+        setProfiles([]);
+        return;
       }
+      setProfiles(null);
     }
   }, [username]);
 
   useEffect(() => {
     getProfile();
-  }, [getProfile]);
+  }, [getProfile, username]);
 
   return (
     <Card className={styles.container}>
       <Card.Header>
-        <Card.Title className={styles.title}>{username}</Card.Title>
+        <Card.Title className={styles.title}>유저 정보</Card.Title>
       </Card.Header>
       <Card.Body className={styles.body_container}>
+        <Card.Title className={styles.title_username}>{username}</Card.Title>
         {profiles ? (
           <ProfileList profileArr={profiles ? profiles : []} />
         ) : (

@@ -17,32 +17,17 @@
   color: $font-color-gray;
 }
 
-.img_container {
-  padding: 0.5rem;
-}
-
-.profile_img {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
 .title {
   @include flex_center;
   margin: 0;
   font-size: 1.1rem;
 }
 
-.title_nickname {
-  padding-top: 0.5rem;
-  text-align: center;
-}
-
-.subtitle {
-  display: flex;
-  align-items: center;
+.userInfo {
+  @include flex_center;
   padding: 0.3rem;
+  padding-top: 1rem;
+  margin: 0;
   font-size: 0.95rem;
 }
 
@@ -64,13 +49,12 @@
   }
 }
 
-.credentials {
-  padding-top: 0.5rem;
+.btn_margin {
+  margin-top: 0.5rem;
 }
 
-.credentials_text {
-  font-size: 0.95rem;
-  font-weight: 500;
-  text-align: center;
-  padding: 0.5rem 0;
+.warning {
+  color: red;
+  font-size: 0.8rem;
+  margin: 0;
 }

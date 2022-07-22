@@ -8,17 +8,17 @@ import styles from "./scss/NeedProfileBlock.module.scss";
 interface PropsType {
   children: ReactNode;
   requiredMessage?: string;
-  category: string;
+  categoryTitle: string;
 }
 
 const NeedProfileBlock: FC<PropsType> = ({
   children,
   requiredMessage,
-  category,
+  categoryTitle,
 }) => {
   const profiles = useSelector((state: RootState) => state.profile.profiles);
   const filteredProfiles = profiles.filter(
-    (profile) => profile.category.title === category
+    (profile) => profile.category.title === categoryTitle
   );
 
   const [mdShow, setMdShow] = useState<boolean>(false);
@@ -39,7 +39,11 @@ const NeedProfileBlock: FC<PropsType> = ({
       <DefaultButton size="md" onClick={openMd} className={styles.add_profile}>
         프로필 추가
       </DefaultButton>
-      <AddProfileModal show={mdShow} close={closeMd} />
+      <AddProfileModal
+        show={mdShow}
+        close={closeMd}
+        categoryTitle={categoryTitle}
+      />
     </div>
   );
 };

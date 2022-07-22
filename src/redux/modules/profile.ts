@@ -100,6 +100,11 @@ const profileSlice = createSlice({
   name: "profile",
   initialState,
   reducers: {
+    clearProfileStateLogout: (state: ProfileState) => {
+      state.status = "idle";
+      state.profiles = [];
+      state.modifyProfileStatus = "idle";
+    },
     clearModifyProfileStatus: (state: ProfileState) => {
       state.modifyProfileStatus = "idle";
     },
@@ -141,6 +146,7 @@ const profileSlice = createSlice({
             return profile._id === updatedProfileId ? action.payload : profile;
           })
         );
+        window.location.reload();
       })
       .addCase(updateProfileThunk.rejected, (state, action) => {
         window.alert("프로필 수정에 실패했습니다. 다시 시도해주세요.");
@@ -164,6 +170,7 @@ const profileSlice = createSlice({
   },
 });
 
-export const { clearModifyProfileStatus } = profileSlice.actions;
+export const { clearModifyProfileStatus, clearProfileStateLogout } =
+  profileSlice.actions;
 
 export default profileSlice.reducer;

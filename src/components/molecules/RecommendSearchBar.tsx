@@ -22,7 +22,7 @@ export default function GameSearchRecommend({
 
   const [text, setText] = useState<string>("");
 
-  const [selectedMenu, setSelectedMenu] = useState<string>("게임");
+  const [selectedMenu, setSelectedMenu] = useState<string>("카테고리");
   const menuSelect = useCallback((eventKey: string | null) => {
     if (eventKey) {
       setSelectedMenu(eventKey);
@@ -67,7 +67,8 @@ export default function GameSearchRecommend({
           );
           return;
         }
-        const category = selectedMenu === "게임" ? "games" : "usernames";
+        const category =
+          selectedMenu === "카테고리" ? "categories" : "usernames";
         showInputHandlerForMobile();
         navigate(`/${category}/${searchParam}`);
         setFindedCategories([]);
@@ -132,7 +133,7 @@ export default function GameSearchRecommend({
         onSelect={menuSelect}
         variant="secondary"
       >
-        <Dropdown.Item eventKey="게임">게임</Dropdown.Item>
+        <Dropdown.Item eventKey="카테고리">카테고리</Dropdown.Item>
         <Dropdown.Item eventKey="이름">사용자 이름</Dropdown.Item>
       </DropdownButton>
       <div className={styles.input_container}>
@@ -150,7 +151,7 @@ export default function GameSearchRecommend({
             findedCategories.length ? "" : styles.hide
           }`}
         >
-          {selectedMenu === "게임"
+          {selectedMenu === "카테고리"
             ? findedCategories.map((category, i) => {
                 if (i === index) {
                   return (

@@ -5,6 +5,7 @@ import { API, APIWithToken } from "./basic";
 export interface CreateSubcommentData {
   postId: string;
   commentId: string;
+  category: string;
   profile: string;
   text: string;
 }
@@ -39,6 +40,11 @@ class SubcommentAPI {
       AxiosResponse<SubcommentType>,
       UpdateSubcommentData
     >(this.path, data);
+  };
+
+  public block = (subcommentId: string) => {
+    const path = this.path + "/block/" + subcommentId;
+    return APIWithToken.patch<void, AxiosResponse<void>, void>(path);
   };
 
   public delete = (subcommentId: string) => {

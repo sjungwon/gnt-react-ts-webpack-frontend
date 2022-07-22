@@ -4,6 +4,7 @@ import { API, APIWithToken } from "./basic";
 
 export interface AddCommentReqData {
   postId: string;
+  category: string;
   profile: string;
   text: string;
 }
@@ -23,18 +24,18 @@ export interface GetMoreCommentData {
 }
 
 class CommentAPI {
-  private commentPath: string = "/comments";
+  private path: string = "/comments";
 
   public createComment = (data: AddCommentReqData) => {
     return APIWithToken.post<
       CommentType,
       AxiosResponse<CommentType>,
       AddCommentReqData
-    >(this.commentPath, data);
+    >(this.path, data);
   };
 
   public updateComment = (data: UpdateCommentReqData) => {
-    const path = this.commentPath + "/" + data.commentId;
+    const path = this.path + "/" + data.commentId;
     return APIWithToken.patch<
       CommentType,
       AxiosResponse<CommentType>,
@@ -45,16 +46,20 @@ class CommentAPI {
     });
   };
 
+  public blockComment = (commentId: string) => {
+    const path = this.path + "/block/" + commentId;
+    return APIWithToken.patch<void, AxiosResponse<void>, void>(path);
+  };
+
   public deleteComment = (commentId: string) => {
-    const path = this.commentPath + "/" + commentId;
+    const path = this.path + "/" + commentId;
     return APIWithToken.delete<CommentType, AxiosResponse<CommentType>, void>(
       path
     );
   };
 
   public getMoreComments = (data: GetMoreCommentData) => {
-    const path =
-      this.commentPath + "/" + data.postId + "/" + data.lastCommentDate;
+    const path = this.path + "/" + data.postId + "/" + data.lastCommentDate;
     return API.get<CommentType[], AxiosResponse<CommentType[]>, void>(path);
   };
 }

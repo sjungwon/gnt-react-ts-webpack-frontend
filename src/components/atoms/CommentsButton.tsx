@@ -7,11 +7,17 @@ interface PropsType {
   size: "lg" | "sm";
   active: boolean;
   onClick: MouseEventHandler<HTMLButtonElement>;
+  className?: string;
 }
 
-const CommentsButton: FC<PropsType> = ({ size, active, onClick }) => {
+const CommentsButton: FC<PropsType> = ({
+  size,
+  active,
+  onClick,
+  className,
+}) => {
   return (
-    <DefaultButton size={size} onClick={onClick}>
+    <DefaultButton size={size} onClick={onClick} className={className}>
       {active ? <FaComment className={styles.btn_icon} /> : <FaRegComment />}{" "}
       <p
         className={`${styles.btn_text} ${

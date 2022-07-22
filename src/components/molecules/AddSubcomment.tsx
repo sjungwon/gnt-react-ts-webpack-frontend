@@ -24,7 +24,7 @@ import SubcommentAPI, {
 interface PropsType {
   postId: string;
   commentId: string;
-  category: string;
+  categoryTitle: string;
   prevData?: SubcommentType;
   setModeDefault: () => void;
   addSubcommentRenderLengthHandler?: () => void;
@@ -33,7 +33,7 @@ interface PropsType {
 export default function AddSubcomment({
   postId,
   commentId,
-  category,
+  categoryTitle,
   prevData,
   setModeDefault,
   addSubcommentRenderLengthHandler,
@@ -52,6 +52,10 @@ export default function AddSubcomment({
   const [loading, setLoading] = useState<boolean>(false);
 
   const dispatch = useDispatch();
+
+  const categories = useSelector(
+    (state: RootState) => state.category.categories
+  );
   const clickToSubmit = useCallback(async () => {
     const text = textAreaRef.current ? textAreaRef.current.value.trim() : "";
     if (!text) {
@@ -59,9 +63,18 @@ export default function AddSubcomment({
     }
     setLoading(true);
     if (!prevData) {
+      const findedCategory = categories.find(
+        (category) => category.title === categoryTitle
+      );
+      if (!findedCategory) {
+        window.alert("댓글을 추가하는데 실패했습니다. 다시 시도해주세요.");
+        setLoading(false);
+        return;
+      }
       const submitData: CreateSubcommentData = {
         postId,
         commentId,
+        category: findedCategory._id,
         profile: currentProfile._id,
         text,
       };
@@ -98,6 +111,8 @@ export default function AddSubcomment({
     setModeDefault();
   }, [
     addSubcommentRenderLengthHandler,
+    categories,
+    categoryTitle,
     commentId,
     currentProfile._id,
     dispatch,
@@ -111,14 +126,14 @@ export default function AddSubcomment({
       <NeedLoginBlock requiredMessage="대댓글을 작성하려면 ">
         <NeedProfileBlock
           requiredMessage="대댓글을 작성하려면 카테고리에 맞는 "
-          category={category}
+          categoryTitle={categoryTitle}
         >
           <CommentCard.Header>
             <ProfileBlock profile={currentProfile} disableNavigate />
             <ProfileSelector
               size="sm"
               setCurrentProfile={setCurrentProfile}
-              category={category}
+              category={categoryTitle}
             />
           </CommentCard.Header>
           <CommentCard.Body>

@@ -23,7 +23,6 @@ APIWithToken.interceptors.response.use(
   (response) => response,
   async (error) => {
     const origReq = error.config;
-    console.log(origReq);
     if (error.response.data.type === "token expired") {
       //그냥 axios로 config 던지면 header 토큰 변경 전 상태로 던져짐
       //APIWithToken으로 던지면 token 변경 되기전에

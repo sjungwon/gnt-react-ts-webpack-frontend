@@ -22,8 +22,47 @@ export interface UpdatePostReqType extends PostReqType {
 class PostAPI {
   private path: string = "/posts";
 
-  public get = (lastPostData?: string) => {
-    const path = lastPostData ? this.path + "?last=" + lastPostData : this.path;
+  public get = (lastPostDate?: string) => {
+    const path = this.path + "?last=" + (lastPostDate || "");
+    return API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
+  };
+
+  public getByCategoryId = (data: {
+    categoryId: string;
+    lastPostDate?: string;
+  }) => {
+    const path =
+      this.path +
+      "/categories/" +
+      data.categoryId +
+      "?last=" +
+      (data.lastPostDate || "");
+    return API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
+  };
+
+  public getByProfileId = (data: {
+    profileId: string;
+    lastPostDate?: string;
+  }) => {
+    const path =
+      this.path +
+      "/profiles/" +
+      data.profileId +
+      "?last=" +
+      (data.lastPostDate || "");
+    return API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
+  };
+
+  public getByUsername = (data: {
+    username: string;
+    lastPostDate?: string;
+  }) => {
+    const path =
+      this.path +
+      "/users/" +
+      encodeURIComponent(data.username) +
+      "?last=" +
+      (data.lastPostDate || "");
     return API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
   };
 
@@ -54,6 +93,11 @@ class PostAPI {
   public delete = (postId: string) => {
     const path = this.path + "/" + postId;
     return APIWithToken.delete<void, AxiosResponse<void>, void>(path);
+  };
+
+  public blockPost = (postId: string) => {
+    const path = this.path + "/block/" + postId;
+    return APIWithToken.patch<void, AxiosResponse<void>, void>(path);
   };
 
   public likePost = (postId: string) => {

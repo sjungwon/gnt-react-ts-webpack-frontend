@@ -1,43 +1,35 @@
-import { useCallback, useState } from "react";
-import { useSelector } from "react-redux";
-import { Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
 import AddPostElement from "../components/molecules/AddPostElement";
-import ProfileCard from "../components/molecules/ProfileCard";
-import UserCard from "../components/molecules/UserCard";
-import CategoryBar from "../components/organisms/CategoryBar";
-import NavBar from "../components/organisms/NavBar";
+import InfoCard from "../components/molecules/InfoCard";
 import PostList from "../components/organisms/PostList";
-import UserInfoBar from "../components/organisms/UserInfoBar";
-import useScrollLock from "../hooks/useScrollLock";
-import { RootState } from "../redux/store";
+import { setCurrentCategoryByTitle } from "../redux/modules/category";
+import { AppDispatch } from "../redux/store";
 
 export default function HomePage() {
-  const { scrollLock, scrollRelease } = useScrollLock();
-  const [showCategory, setShowCategory] = useState<boolean>(false);
-  const showCategoryHandler = useCallback(() => {
-    setShowCategory((prev) => {
-      if (prev) {
-        scrollRelease();
-      } else {
-        scrollLock();
-      }
-      return !prev;
-    });
-  }, [scrollLock, scrollRelease]);
+  // const { scrollLock, scrollRelease } = useScrollLock();
+  // const [showCategory, setShowCategory] = useState<boolean>(false);
+  // const showCategoryHandler = useCallback(() => {
+  //   setShowCategory((prev) => {
+  //     if (prev) {
+  //       scrollRelease();
+  //     } else {
+  //       scrollLock();
+  //     }
+  //     return !prev;
+  //   });
+  // }, [scrollLock, scrollRelease]);
 
-  const currentCategoryTitle = useSelector(
-    (state: RootState) => state.category.currentCategoryTitle
-  );
+  const dispatch = useDispatch<AppDispatch>();
+  useEffect(() => {
+    dispatch(setCurrentCategoryByTitle(""));
+  }, [dispatch]);
 
   return (
-    <div>
-      <NavBar showCategoryHandler={showCategoryHandler} />
-      <CategoryBar show={true} />
-      <UserInfoBar />
-      <UserCard username={"heeho3"} />
-      <ProfileCard searchProfile={"62cdc977a541e13dec5f70ae"} />
-      <AddPostElement category={currentCategoryTitle} />
-      <PostList />
-    </div>
+    <>
+      <InfoCard text={"전체 보기"} />
+      <AddPostElement category="" />
+      <PostList type="" />
+    </>
   );
 }
