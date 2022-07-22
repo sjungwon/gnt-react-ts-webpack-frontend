@@ -1,6 +1,10 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AxiosError } from "axios";
-import { addCategoryAPI, getCategoryAPI } from "../../apis/category";
+import { AxiosError, AxiosResponse } from "axios";
+import {
+  addCategoryAPI,
+  deleteCategoryAPI,
+  getCategoryAPI,
+} from "../../apis/category";
 import { SortCategory } from "../../functions/SortFunc";
 
 export interface CategoryType {
@@ -39,10 +43,24 @@ export const addCategoryThunk = createAsyncThunk(
   }
 );
 
+export const deleteCategoryThunk = createAsyncThunk(
+  "category/delete",
+  async (categoryId: string, { rejectWithValue }) => {
+    try {
+      await deleteCategoryAPI(categoryId);
+      return categoryId;
+    } catch (err) {
+      console.log(err);
+      return rejectWithValue((err as AxiosError).response);
+    }
+  }
+);
+
 interface CategoryState {
   status: "idle" | "pending" | "success" | "failed";
   categories: CategoryType[];
   addStatus: "idle" | "pending" | "success" | "failed";
+  deleteStatus: "idle" | "pending" | "success" | "failed";
   currentCategory: CategoryType;
   initialCategory: CategoryType;
 }
@@ -52,6 +70,7 @@ const initialState: CategoryState = {
   status: "idle",
   categories: [],
   addStatus: "idle",
+  deleteStatus: "idle",
   currentCategory: {
     title: "",
     _id: "",
@@ -100,6 +119,9 @@ const categoryslice = createSlice({
     clearAddCategoryStatus: (state: CategoryState) => {
       state.addStatus = "idle";
     },
+    clearDeleteCategoryStatus: (state: CategoryState) => {
+      state.deleteStatus = "idle";
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -126,11 +148,47 @@ const categoryslice = createSlice({
       })
       .addCase(addCategoryThunk.rejected, (state, action) => {
         state.addStatus = "failed";
+      })
+      .addCase(deleteCategoryThunk.pending, (state, action) => {
+        state.deleteStatus = "pending";
+      })
+      .addCase(deleteCategoryThunk.fulfilled, (state, action) => {
+        state.deleteStatus = "success";
+
+        const deletedCategoryId = action.payload as string;
+        state.categories = state.categories.filter(
+          (category) => category._id !== deletedCategoryId
+        );
+      })
+      .addCase(deleteCategoryThunk.rejected, (state, action) => {
+        state.deleteStatus = "failed";
+        const error = action.payload as AxiosResponse<{
+          type: string;
+          error: string;
+        }>;
+        console.log(error);
+
+        const errorStatus = error.status || 500;
+        const errorMessage = error.data.error;
+        if (errorStatus === 403) {
+          if (errorMessage === "can't delete category with content") {
+            window.alert(
+              "컨텐츠(프로필, 포스트, 댓글, 대댓글)가 존재하는 카테고리는 제거할 수 없습니다."
+            );
+            return;
+          }
+          window.alert("카테고리를 제거할 권한이 없습니다.");
+          return;
+        }
+        window.alert("카테고리 제거에 오류가 발생했습니다. 다시 시도해주세요.");
       });
   },
 });
 
-export const { setCurrentCategoryByTitle, clearAddCategoryStatus } =
-  categoryslice.actions;
+export const {
+  setCurrentCategoryByTitle,
+  clearAddCategoryStatus,
+  clearDeleteCategoryStatus,
+} = categoryslice.actions;
 
 export default categoryslice.reducer;

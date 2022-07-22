@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { Card } from "react-bootstrap";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { getCategoryByTitle } from "../../apis/category";
-import { CategoryType } from "../../redux/modules/category";
-import { RootState } from "../../redux/store";
+import {
+  CategoryType,
+  clearDeleteCategoryStatus,
+  deleteCategoryThunk,
+} from "../../redux/modules/category";
+import { AppDispatch, RootState } from "../../redux/store";
+import DefaultButton from "../atoms/DefaultButton";
+import RemoveConfirmModal from "./RemoveConfirmModal";
 import styles from "./scss/CategoryCard.module.scss";
 
 interface PropsType {
@@ -43,6 +49,36 @@ export default function CategoryCard({ title }: PropsType) {
     getCategory(title);
   }, [title, getCategory]);
 
+  const username = useSelector((state: RootState) => state.auth.username);
+  const dispatch = useDispatch<AppDispatch>();
+  const deleteStatus = useSelector(
+    (state: RootState) => state.category.deleteStatus
+  );
+
+  useEffect(() => {
+    if (deleteStatus === "success" || deleteStatus === "failed") {
+      dispatch(clearDeleteCategoryStatus());
+      if (deleteStatus === "success") {
+        window.location.reload();
+      }
+    }
+  }, [deleteStatus, dispatch]);
+
+  const [removeMdShow, setRemoveMdShow] = useState<boolean>(false);
+
+  const openRemoveMd = useCallback(() => {
+    setRemoveMdShow(true);
+  }, []);
+
+  const closeRemoveMd = useCallback(() => {
+    setRemoveMdShow(false);
+  }, []);
+
+  const removeCategory = useCallback(() => {
+    dispatch(deleteCategoryThunk(category._id));
+    setRemoveMdShow(false);
+  }, [category._id, dispatch]);
+
   return (
     <Card className={styles.container}>
       <Card.Header>
@@ -63,6 +99,23 @@ export default function CategoryCard({ title }: PropsType) {
             "정보 없음"
           )}
         </p>
+        {category.user.username === username ? (
+          <>
+            <DefaultButton
+              size="md"
+              onClick={openRemoveMd}
+              className={styles.btn_margin}
+            >
+              카테고리 제거
+            </DefaultButton>
+            <RemoveConfirmModal
+              show={removeMdShow}
+              close={closeRemoveMd}
+              remove={removeCategory}
+              loading={deleteStatus === "pending"}
+            />
+          </>
+        ) : null}
       </Card.Body>
     </Card>
   );
