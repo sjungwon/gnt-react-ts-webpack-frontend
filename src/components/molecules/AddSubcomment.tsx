@@ -126,7 +126,7 @@ export default function AddSubcomment({
       <NeedLoginBlock requiredMessage="대댓글을 작성하려면 ">
         <NeedProfileBlock
           requiredMessage="대댓글을 작성하려면 카테고리에 맞는 "
-          category={categoryTitle}
+          categoryTitle={categoryTitle}
         >
           <CommentCard.Header>
             <ProfileBlock profile={currentProfile} disableNavigate />

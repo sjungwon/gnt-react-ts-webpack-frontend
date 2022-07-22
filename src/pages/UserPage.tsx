@@ -1,16 +1,23 @@
-import { useSelector } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import AddPostElement from "../components/molecules/AddPostElement";
 import InfoCard from "../components/molecules/InfoCard";
 import UserCard from "../components/molecules/UserCard";
 import PostList from "../components/organisms/PostList";
-import { RootState } from "../redux/store";
+import { setCurrentCategoryByTitle } from "../redux/modules/category";
+import { AppDispatch, RootState } from "../redux/store";
 import HomePage from "./HomePage";
 
 export default function UserPage() {
   const params = useParams();
 
   const username = useSelector((state: RootState) => state.auth.username);
+
+  const dispatch = useDispatch<AppDispatch>();
+  useEffect(() => {
+    dispatch(setCurrentCategoryByTitle(""));
+  }, [dispatch]);
 
   if (!params.username) {
     return <HomePage />;

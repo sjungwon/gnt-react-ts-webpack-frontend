@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { getProfileByIdAPI } from "../apis/profile";
 import InfoCard from "../components/molecules/InfoCard";
 import ProfileCard from "../components/molecules/ProfileCard";
 import PostList from "../components/organisms/PostList";
+import { setCurrentCategoryByTitle } from "../redux/modules/category";
 import { ProfileType } from "../redux/modules/profile";
-import { RootState } from "../redux/store";
+import { AppDispatch, RootState } from "../redux/store";
 import HomePage from "./HomePage";
 
 export default function ProfilePage() {
@@ -38,6 +39,11 @@ export default function ProfilePage() {
   useEffect(() => {
     getProfile();
   }, [getProfile]);
+
+  const dispatch = useDispatch<AppDispatch>();
+  useEffect(() => {
+    dispatch(setCurrentCategoryByTitle(""));
+  }, [dispatch]);
 
   if (!params.id) {
     return <HomePage />;

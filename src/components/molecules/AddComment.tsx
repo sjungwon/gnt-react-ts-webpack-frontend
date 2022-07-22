@@ -139,7 +139,7 @@ PropsType) {
     <CommentCard borderBottom={!prevData}>
       <NeedLoginBlock requiredMessage="댓글을 작성하려면 ">
         <NeedProfileBlock
-          category={categoryTitle}
+          categoryTitle={categoryTitle}
           requiredMessage="댓글을 작성하려면 카테고리에 맞는 "
         >
           <CommentCard.Header>

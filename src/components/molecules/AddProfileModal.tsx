@@ -24,6 +24,7 @@ interface PropsType {
   show: boolean;
   close: () => void;
   prevData?: ProfileType;
+  categoryTitle: string;
 }
 
 interface ProfileCategoryType {
@@ -31,10 +32,12 @@ interface ProfileCategoryType {
   title: string;
 }
 
-export default function AddProfileModal({ show, close, prevData }: PropsType) {
-  const categories = useSelector(
-    (state: RootState) => state.category.categories
-  );
+export default function AddProfileModal({
+  show,
+  close,
+  prevData,
+  categoryTitle,
+}: PropsType) {
   const profiles = useSelector((state: RootState) => state.profile.profiles);
   const modifyProfileStatus = useSelector(
     (state: RootState) => state.profile.modifyProfileStatus
@@ -47,14 +50,22 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
   const [selectedCategory, setSelectedCategory] =
     useState<ProfileCategoryType | null>(null);
 
+  const categories = useSelector(
+    (state: RootState) => state.category.categories
+  );
+
+  const filteredCategories = categoryTitle
+    ? categories.filter((category) => category.title === categoryTitle)
+    : categories;
+
   const select = useCallback(
     (eventKey: string | null) => {
-      if (eventKey !== null && categories.length) {
+      if (eventKey !== null && filteredCategories.length) {
         const index = Number(eventKey);
-        setSelectedCategory(categories[index]);
+        setSelectedCategory(filteredCategories[index]);
       }
     },
-    [categories]
+    [filteredCategories]
   );
 
   const [file, setFile] = useState<File | undefined | null>(undefined);
@@ -276,7 +287,7 @@ export default function AddProfileModal({ show, close, prevData }: PropsType) {
             <CategorySelector
               onSelect={select}
               size="sm"
-              categories={categories}
+              categories={filteredCategories}
             />
           </div>
           <div className={styles.form}>

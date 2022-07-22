@@ -56,7 +56,11 @@ export default function UserProfileList({ filtered }: PropsType) {
             프로필 추가
           </DefaultButton>
         </div>
-        <AddProfileModal show={showAdd} close={closeShowAdd} />
+        <AddProfileModal
+          show={showAdd}
+          close={closeShowAdd}
+          categoryTitle={filtered ? currentCategory.title : ""}
+        />
         <CategorizedProfileList profileArr={filteredProfile} />
       </div>
     </>
@@ -213,6 +217,7 @@ const ProfileLiEl: FC<{
           show={showUpdate}
           close={showUpdateClose}
           prevData={profile}
+          categoryTitle={profile.category.title}
         />
         <DefaultButton size="xs" onClick={removeMdOpen}>
           삭제
