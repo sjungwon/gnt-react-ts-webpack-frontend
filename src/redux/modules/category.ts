@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AxiosError, AxiosResponse } from "axios";
+import { AxiosError } from "axios";
 import categoryAPI from "../../apis/category";
 
 const SortCategory = (categories: CategoryType[]) => {
@@ -101,7 +101,12 @@ export const deleteCategoryThunk = createAsyncThunk(
       await categoryAPI.delete(categoryId);
       return categoryId;
     } catch (err) {
-      return rejectWithValue((err as AxiosError).response);
+      const errResponse = (err as AxiosError).response;
+      const errData = {
+        status: errResponse?.status,
+        data: errResponse?.data,
+      };
+      return rejectWithValue(errData);
     }
   }
 );
@@ -193,13 +198,13 @@ const categoryslice = createSlice({
       //카테고리 제거 실패
       .addCase(deleteCategoryThunk.rejected, (state, action) => {
         state.deleteStatus = "failed";
-        const error = action.payload as AxiosResponse<{
-          type: string;
-          error: string;
-        }>;
+        const error = action.payload as {
+          status: number;
+          data: { type: string; error: string };
+        };
         console.log(error);
 
-        const errorStatus = error.status || 500;
+        const errorStatus = error.status;
         const errorMessage = error.data.error;
         if (errorStatus === 403) {
           if (errorMessage === "can't delete category with content") {
