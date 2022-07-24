@@ -1,12 +1,12 @@
 import { AiOutlineDownCircle, AiOutlineUpCircle } from "react-icons/ai";
 import { useCallback, useState } from "react";
 import styles from "./scss/SubcommentList.module.scss";
-import AddSubcomment from "../molecules/AddSubcomment";
+import CreateSubcomment from "../molecules/CreateSubcomment";
 import SubcommentElement from "./SubcommentElement";
 import DefaultButton from "../atoms/DefaultButton";
 import LoadingBlock from "../atoms/LoadingBlock";
 import { getMoreSubcomments, SubcommentType } from "../../redux/modules/post";
-import SubcommentAPI from "../../apis/subcomment";
+import subcommentAPI from "../../apis/subcomment";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../../redux/store";
 
@@ -41,9 +41,10 @@ export default function SubcommentList({
       renderLength >= subcomments.length &&
       subcomments.length < subcommentsCount
     ) {
+      //대댓글을 더 가져올 수 있는 경우
       setLoading(true);
       try {
-        const response = await SubcommentAPI.getMore(
+        const response = await subcommentAPI.get(
           commentId,
           subcomments[subcomments.length - 1].createdAt
         );
@@ -58,24 +59,29 @@ export default function SubcommentList({
         setLoading(false);
       }
     } else {
+      //대댓글을 더 보여주는 경우
       setRenderLength((prev) =>
         prev + 3 > subcomments.length ? subcomments.length : prev + 3
       );
     }
   }, [commentId, dispatch, renderLength, subcomments, subcommentsCount]);
 
+  //대댓글 닫기
   const closeRenderLengthHandler = useCallback(() => {
     setRenderLength(subcomments.length > 1 ? 1 : 0);
   }, [subcomments.length]);
 
+  //대댓글 추가시 렌더 길이 + 1
   const addSubcommentRenderLengthHandler = useCallback(() => {
     setRenderLength((prev) => prev + 1);
   }, []);
 
+  //대댓글 제거시 렌더 길이 - 1
   const deleteSubcommentRenderLengthHandler = useCallback(() => {
     setRenderLength((prev) => prev - 1);
   }, []);
 
+  //대댓글 추가 닫기 - comment 쪽에서 열어 놓으면 subcomment쪽에서 닫아야 함
   const setModeDefault = useCallback(() => {
     setAddSubcomment(false);
   }, [setAddSubcomment]);
@@ -88,7 +94,7 @@ export default function SubcommentList({
 
     return (
       <div className={styles.container}>
-        <AddSubcomment
+        <CreateSubcomment
           postId={postId}
           commentId={commentId}
           categoryTitle={categoryTitle}
@@ -103,7 +109,7 @@ export default function SubcommentList({
   return (
     <div className={styles.container}>
       {addSubcomment ? (
-        <AddSubcomment
+        <CreateSubcomment
           postId={postId}
           commentId={commentId}
           categoryTitle={categoryTitle}
