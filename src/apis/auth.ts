@@ -38,7 +38,7 @@ class AuthAPI {
 
   //POST 로그인
   //로그인 API
-  public signinAPI = async (
+  public signin = async (
     signinData: SigninData
   ): Promise<{ data: SigninResDataType }> => {
     const loginPath = this.path + "signin";
@@ -52,13 +52,13 @@ class AuthAPI {
 
   //POST 로그아웃
   //요청 전송하면 서버에서 쿠키에 설정된 Refresh Token 정보를 지움
-  public signoutAPI = (): Promise<void> => {
+  public signout = (): Promise<void> => {
     const logoutPath = this.path + "signout";
     return this.API.post(logoutPath);
   };
 
   //POST 회원가입
-  public signupAPI = (signupData: SignupData): Promise<void> => {
+  public signup = (signupData: SignupData): Promise<void> => {
     const signupPath = this.path + "signup";
     return this.API.post(signupPath, signupData);
   };
@@ -66,7 +66,7 @@ class AuthAPI {
   //POST access 토큰 refresh
   //프론트에 진입시 로그인 이력이 있는지 확인할 때도 사용
   //accessToken 못 받아 오면 로그인 안 되어 있는거
-  public accessTokenRefreshAPI = async (): Promise<{
+  public accessTokenRefresh = async (): Promise<{
     data: SigninResDataType;
   }> => {
     const checkPath = this.path + `refresh`;
@@ -80,15 +80,13 @@ class AuthAPI {
   //POST 비밀번호 찾기
   //username, email을 전송(유저 정보가 맞는지 확인)
   //맞으면 암호 재설정
-  public findPasswordAPI = async (
-    findUserData: FindUserData
-  ): Promise<void> => {
+  public findPassword = async (findUserData: FindUserData): Promise<void> => {
     const findPath = this.path + `find`;
     return this.API.post(findPath, findUserData);
   };
 
   //POST 암호 재설정
-  public chagnePasswordAPI = async (
+  public changePassword = async (
     changePasswordData: ChangePasswordData
   ): Promise<void> => {
     const changePath = this.path + "change";

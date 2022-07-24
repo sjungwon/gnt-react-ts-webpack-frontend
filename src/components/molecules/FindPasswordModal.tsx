@@ -1,6 +1,6 @@
 import { ChangeEventHandler, FC, useCallback, useState } from "react";
 import { Modal } from "react-bootstrap";
-import { chagnePasswordAPI, findPasswordAPI } from "../../apis/auth";
+import authAPI from "../../apis/auth";
 import { isEmailType } from "../../functions/TextValidFunc";
 import useConfirmPassword from "../../hooks/useConfirmPassword";
 import DefaultButton from "../atoms/DefaultButton";
@@ -15,6 +15,8 @@ interface PropsType {
 
 const FindPasswordModal: FC<PropsType> = ({ show, close }) => {
   const [username, setUsername] = useState<string>("");
+
+  //username input 데이터 저장
   const onChangeUsername: ChangeEventHandler<HTMLInputElement> = useCallback(
     (event) => {
       setUsername(event.target.value);
@@ -22,6 +24,7 @@ const FindPasswordModal: FC<PropsType> = ({ show, close }) => {
     []
   );
 
+  //email input 데이터 제어 + 이메일 형식인지 확인 + 메세지 알림
   const [email, setEmail] = useState<string>("");
   const [emailValid, setEmailValid] = useState<boolean>(false);
   const [emailValidMsg, setEmailValidMsg] = useState<string>("");
@@ -39,6 +42,7 @@ const FindPasswordModal: FC<PropsType> = ({ show, close }) => {
     []
   );
 
+  //사용자 이름 + 이메일로 해당하는 유저 데이터 있는지 확인
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
   const [submitMsg, setSubmitMsg] = useState<string>("");
@@ -49,8 +53,7 @@ const FindPasswordModal: FC<PropsType> = ({ show, close }) => {
     }
     setLoading(true);
     try {
-      await findPasswordAPI({ username, email });
-      // await AuthServices.findPassword(username);
+      await authAPI.findPassword({ username, email });
       setSuccess(true);
       setSubmitMsg(
         "사용자 정보가 확인되었습니다. 변경하실 비밀번호를 입력해주세요."
@@ -64,6 +67,8 @@ const FindPasswordModal: FC<PropsType> = ({ show, close }) => {
     setLoading(false);
   }, [username, email]);
 
+  //사용자 이름 + 이메일에 해당하는 유저가 있는 경우 암호 재설정
+  //password input에 사용할 데이터 -> 암호의 경우 암호 + 암호 확인 두 개의 input 사용
   const {
     password,
     passwordVerify,
@@ -76,6 +81,7 @@ const FindPasswordModal: FC<PropsType> = ({ show, close }) => {
     init: passwordInit,
   } = useConfirmPassword();
 
+  //모달 닫을 때 모든 데이터 초기화
   const closeWithInit = useCallback(() => {
     setUsername("");
     setLoading(false);
@@ -88,6 +94,7 @@ const FindPasswordModal: FC<PropsType> = ({ show, close }) => {
     close();
   }, [close, passwordInit]);
 
+  //암호 재설정 전송
   const confirmSubmit = useCallback(async () => {
     if (
       !password ||
@@ -100,7 +107,7 @@ const FindPasswordModal: FC<PropsType> = ({ show, close }) => {
     }
 
     try {
-      await chagnePasswordAPI({ username, email, password });
+      await authAPI.changePassword({ username, email, password });
       window.alert("새 비밀번호로 변경되었습니다.");
       closeWithInit();
     } catch (err) {

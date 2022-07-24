@@ -5,18 +5,22 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import { CgClose } from "react-icons/cg";
 import useScrollLock from "../../hooks/useScrollLock";
 
-//image를 Url로 안다루고 key까지 넣은 객체로 다루기
-
+//이미지 타입 -> S3에 저장된 이미지 Key, URL
 export interface ImageType {
   URL: string;
   Key: string;
 }
 
 interface PropsType {
+  //이미지 배열
   images: ImageType[];
+  //slide 인덱스 제어 필요한 경우
   index?: number;
+  //인덱스 제어하는 경우 인덱스 설정
   setIndex?: (index: number) => void;
+  //이미지 클릭시 확장할 지 지정
   expandable?: true;
+  //이미지 제어 출력 여부
   noIndicator?: true;
 }
 
@@ -38,22 +42,20 @@ export default function ImageSlide({
   );
 
   //index가 변했을 때 = 이미지가 제거되거나 추가될 때
-  //index 오류 방지를 위해 0으로 설정
+  //index가 0이하로 내려가면 오류 방지를 위해 0으로 설정
   useEffect(() => {
     if (index && index < 1 && setIndex) {
       setIndex(0);
     }
   }, [setIndex, images, index]);
 
-  //s3에 추가되기 전 이미지를 불러오기 오류나면 깨짐 처리
-  //s3 이미지면 lazy loading으로 url에 담긴 유저 권한이 유효기간을 넘겼을 수 있음
-  //다시 resized 이미지 url 받아와서 axios로 이미지 받을 수 있는지 확인
-  //실패하면 fullsize 이미지로 설정
-  //fullsize 이미지도 실패하면 깨짐 처리
+  //이미지 클릭시 확장할 이미지 URL 데이터
   const [expandURL, setExpandURL] = useState<string>("");
 
+  //이미지 확대 시 스크롤 락, 닫으면 해제
   const { scrollLock, scrollRelease } = useScrollLock();
 
+  //이미지 클릭시 URL 지정 + 스크롤 락
   const click: MouseEventHandler<HTMLImageElement> = useCallback(
     (event) => {
       if (expandable) {
@@ -66,6 +68,8 @@ export default function ImageSlide({
     },
     [expandable, scrollLock]
   );
+
+  //이미지 URL 해제 + 스크롤 락 해제
   const close = useCallback(() => {
     setExpandURL("");
     scrollRelease();
@@ -80,8 +84,6 @@ export default function ImageSlide({
         activeIndex={index}
         onSelect={handleSelect}
         controls={images.length > 1}
-        // nextIcon={null}
-        // prevIcon={null}
         indicators={!noIndicator}
       >
         {images?.map((img: ImageType, i: number) => {
@@ -106,14 +108,9 @@ interface ExpandImagePropsType {
   close: () => void;
 }
 
+//이미지 확장
 const ExpandImage: FC<ExpandImagePropsType> = ({ imageURL, close }) => {
-  // const dom = document.querySelector(".App");
-  // if (imageURL) {
-  //   dom?.classList.add(styles.scroll_lock);
-  // } else {
-  //   dom?.classList.remove(styles.scroll_lock);
-  // }
-
+  //이미지 확장 안한 경우
   if (!imageURL) {
     return null;
   }

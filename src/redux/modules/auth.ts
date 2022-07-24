@@ -32,14 +32,14 @@ const initialState: AuthState = {
 export const signinThunk = createAsyncThunk(
   "auth/signin",
   async (signinData: SigninData) => {
-    const response = await authAPI.signinAPI(signinData);
+    const response = await authAPI.signin(signinData);
     return response.data;
   }
 );
 
 //로그아웃 Thunk
 export const signoutThunk = createAsyncThunk("auth/signout", async () => {
-  await authAPI.signoutAPI();
+  await authAPI.signout();
 });
 
 //회원 가입 오류 타입
@@ -53,7 +53,7 @@ export const signupThunk = createAsyncThunk(
   "auth/signup",
   async (signupData: SignupData, { rejectWithValue }) => {
     try {
-      await authAPI.signupAPI(signupData);
+      await authAPI.signup(signupData);
     } catch (error: any) {
       //에러 발생시 에러 전달
       return rejectWithValue((error as AxiosError).response);
@@ -68,7 +68,7 @@ export const signupThunk = createAsyncThunk(
 
 //로그인 확인 Thunk -> access 토큰 만료 시 재발급에도 사용
 export const checkThunk = createAsyncThunk("auth/check", async () => {
-  const response = await authAPI.accessTokenRefreshAPI();
+  const response = await authAPI.accessTokenRefresh();
   return response.data;
 });
 
