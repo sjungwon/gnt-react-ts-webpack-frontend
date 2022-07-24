@@ -84,7 +84,7 @@ export default function SubcommentElement({
   );
 
   const subcommentCategory = categories.find(
-    (category) => category.title === subcomment.category.title
+    (category) => category.title === categoryTitle
   );
 
   const {

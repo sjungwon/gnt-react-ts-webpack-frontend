@@ -96,7 +96,7 @@ export default function CommentElement({
   //사용자가 댓글 작성자가 아니더라도
   //카테고리 관리자인지 확인하기 위해 카테고리 데이터 가져옴
   const commentCategory = categories.find(
-    (category) => category.title === comment.category.title
+    (category) => category.title === categoryTitle
   );
 
   //차단 확인 모달에 사용할 데이터
