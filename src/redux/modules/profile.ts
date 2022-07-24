@@ -4,7 +4,24 @@ import profileAPI, {
   UpdateProfileReqType,
 } from "../../apis/profile";
 import { TypedForm } from "../../classes/TypedForm";
-import { SortProfiles } from "../../functions/SortFunc";
+
+const SortProfiles = (profiles: ProfileType[]) => {
+  return [...profiles].sort((a, b) => {
+    if (a.category.title < b.category.title) {
+      return -1;
+    } else if (a.category.title > b.category.title) {
+      return 1;
+    } else {
+      if (a.nickname < b.nickname) {
+        return -1;
+      } else if (a.nickname > b.nickname) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+  });
+};
 
 export interface ProfileType {
   _id: string;

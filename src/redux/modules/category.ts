@@ -1,7 +1,20 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AxiosError, AxiosResponse } from "axios";
 import categoryAPI from "../../apis/category";
-import { SortCategory } from "../../functions/SortFunc";
+
+const SortCategory = (categories: CategoryType[]) => {
+  const sortedCategories = [...categories].sort((a, b) => {
+    if (a.title < b.title) {
+      return -1;
+    } else if (a.title > b.title) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+
+  return sortedCategories;
+};
 
 //카테고리 데이터 타입
 export interface CategoryType {
