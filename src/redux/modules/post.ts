@@ -82,7 +82,7 @@ interface PostState {
   //포스트 배열 데이터
   posts: PostType[];
   //포스트, 댓글, 대댓글 수정 시 한번에 하나만 수정하도록 ID로 수정할 데이터 지정, 포스트 추가도 포함
-  modifyContentId: "addPost" | string;
+  modifyContentId: "createPost" | string;
   //포스트 제거 상태
   deletePostStatus: StatusType;
 }

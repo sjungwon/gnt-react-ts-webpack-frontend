@@ -10,7 +10,7 @@ interface PostReqType {
   newImages?: File[];
 }
 
-export interface AddPostReqType extends PostReqType {
+export interface CreatePostReqType extends PostReqType {
   category: string;
 }
 
@@ -73,7 +73,7 @@ class PostAPI {
   };
 
   //POST 포스트 생성
-  public readonly create = (newPost: TypedForm<AddPostReqType>) => {
+  public readonly create = (newPost: TypedForm<CreatePostReqType>) => {
     return this.APIWithToken.post<PostType, AxiosResponse<PostType>, FormData>(
       this.path,
       newPost.data,
