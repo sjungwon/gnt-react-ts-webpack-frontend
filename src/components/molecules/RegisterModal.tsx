@@ -26,11 +26,8 @@ type RegisterProps = {
 };
 
 export default function RegisterModal({ mdShow, mdClose }: RegisterProps) {
-  //form 데이터
-  const [email, setEmail] = useState<string>("");
-  const [username, setUsername] = useState<string>("");
-
   //이름 입력 검증
+  const [username, setUsername] = useState<string>("");
   const [usernameVerify, setUsernameVerify] = useState<boolean>(false);
   const [usernameVerifyMessage, setUsernameVerifyMessage] =
     useState<string>("");
@@ -59,6 +56,7 @@ export default function RegisterModal({ mdShow, mdClose }: RegisterProps) {
   );
 
   //이메일 입력 검증
+  const [email, setEmail] = useState<string>("");
   const [emailVerify, setEmailVerify] = useState<boolean>(false);
   const [emailVerifyMessage, setEmailVerifyMessage] = useState<string>("");
   const verifyEmail: ChangeEventHandler<HTMLInputElement> = useCallback(
@@ -110,12 +108,15 @@ export default function RegisterModal({ mdShow, mdClose }: RegisterProps) {
     [dispatch, username, password, email]
   );
 
+  //회원 가입 제출 상태
   const status = useSelector((state: RootState) => state.auth.registerStatus);
+  //회원 가입 오류 시 오류 메세지
   const message = useSelector((state: RootState) => state.auth.registerMessage);
 
   useEffect(() => {
     if (status === "failed") {
       window.alert(message);
+      return;
     }
     if (status === "success") {
       window.alert("회원 가입에 성공했습니다.");
