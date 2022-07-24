@@ -9,7 +9,7 @@ import {
 } from "react-icons/bs";
 import ImageSlide from "./ImageSlide";
 import RemoveConfirmModal from "./RemoveConfirmModal";
-import AddPostElement from "./AddPostElement";
+import CreatePostElement from "./CreatePostElement";
 import { NavLink } from "react-router-dom";
 import DefaultButton from "../atoms/DefaultButton";
 import ProfileBlock from "./ProfileBlock";
@@ -29,7 +29,7 @@ import CommentList from "./CommentList";
 import CommentsButton from "../atoms/CommentsButton";
 import { GoTriangleUp, GoTriangleDown } from "react-icons/go";
 import useHasCategoryProfile from "../../hooks/useHasCategoryProfile";
-import PostAPI from "../../apis/post";
+import postAPI from "../../apis/post";
 import BlockConfirmModal from "./BlockConfirmModal";
 import useBlockContent from "../../hooks/useBlockContent";
 
@@ -41,10 +41,15 @@ export default function PostElement({ post }: PropsType) {
   //댓글 보기 관련 함수
   const [showComment, setShowComment] = useState<boolean>(false);
   const [scrollHeight, setScrollHeight] = useState<number>(0);
+
+  //유저 정보
   const username = useSelector((state: RootState) => state.auth.username);
   const userId = useSelector((state: RootState) => state.auth.userId);
+
   const dispatch = useDispatch<AppDispatch>();
 
+  //댓글 열고 닫는 함수
+  //열 때 스크롤 저장 -> 닫을 때 스크롤 이전 값으로 돌려놓음
   const commentHandler = useCallback(() => {
     setShowComment((prev) => {
       if (!prev) {
@@ -78,32 +83,40 @@ export default function PostElement({ post }: PropsType) {
 
   //포스트 제거, 제거 확인 모달 관련 데이터
   const [showRemoveModal, setShowRemoveModal] = useState(false);
+
   const handleRemoveModalClose = useCallback(() => {
     setShowRemoveModal(false);
   }, []);
+
   const handleRemoveModalOpen = useCallback(() => {
     dispatch(clearDeletePostStatus());
     setShowRemoveModal(true);
   }, [dispatch]);
 
+  //제거 상태
   const deletePostStatus = useSelector(
     (state: RootState) => state.post.deletePostStatus
   );
 
+  //제거 전송
   const sendRemovePost = useCallback(() => {
     dispatch(deletePostThunk(post._id));
   }, [dispatch, post._id]);
 
+  //유저가 카테고리 관리자인지 확인하기 위해 카테고리 정보 가져옴
   const categories = useSelector(
     (state: RootState) => state.category.categories
   );
+
   const postCategory = categories.find(
     (category) => category.title === post.category.title
   );
 
+  //차단 확인 모달에 전달할 데이터
   const API = async () => {
-    await PostAPI.blockPost(post._id);
+    await postAPI.block(post._id);
   };
+
   const actionCreator = () => {
     return blockPost(post._id);
   };
@@ -116,8 +129,10 @@ export default function PostElement({ post }: PropsType) {
     sendBlockContent,
   } = useBlockContent({ API, actionCreator, contentType: "포스트" });
 
+  //수정 시 현재 카테고리에 해당하는 프로필이 있는지 확인 -> 프로필 제거된 경우 -> 카테고리에 맞는 프로필이 없으면 포스트에 프로필을 지정할 수 없음
   const hasCategoryProfile = useHasCategoryProfile(post.category.title);
-  //포스트 관리 함수 -> 수정, 제거 선택
+
+  //포스트 관리 함수 -> 수정, 제거, 차단 선택
   const select = useCallback(
     (eventKey: any) => {
       if (eventKey === "1") {
@@ -171,25 +186,31 @@ export default function PostElement({ post }: PropsType) {
     setShowTextLength(200);
   }, [post, textMore]);
 
+  //텍스트 제한된 경우 텍스트 더보기
   const showMore = useCallback(() => {
     setTextMore((prev) => !prev);
   }, []);
 
+  //메뉴 ref -> bootstrap dropdown 버튼 대신 다른 버튼 사용을 위해 사용
   const menuRef = useRef<HTMLButtonElement>(null);
 
+  //메뉴 클릭시 -> 다른 버튼 클릭 시 bootstrap dropdown 버튼 클릭
   const menuClick = useCallback(() => {
     if (menuRef.current) {
       menuRef.current.click();
     }
   }, []);
 
+  //수정 모드 확인
   const modifyContentId = useSelector(
     (state: RootState) => state.post.modifyContentId
   );
 
-  //렌더
+  //수정 모드인 경우
   if (post._id === modifyContentId) {
-    return <AddPostElement category={post.category.title} prevData={post} />;
+    return (
+      <CreatePostElement categoryTitle={post.category.title} prevData={post} />
+    );
   }
 
   return (
