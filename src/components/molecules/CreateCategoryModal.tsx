@@ -3,8 +3,8 @@ import { Modal } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { isIncludePathSpecial } from "../../functions/TextValidFunc";
 import {
-  addCategoryThunk,
-  clearAddCategoryStatus,
+  createCategoryThunk,
+  clearCreateCategoryStatus,
 } from "../../redux/modules/category";
 import { AppDispatch, RootState } from "../../redux/store";
 import DefaultButton from "../atoms/DefaultButton";
@@ -17,36 +17,41 @@ interface PropsType {
   close: () => void;
 }
 
-const AddCategory: FC<PropsType> = ({ show, close }) => {
+//카테고리 추가 모달
+const CreateCategoryModal: FC<PropsType> = ({ show, close }) => {
+  //input ref
+  const categoryInputRef = useRef<HTMLInputElement>(null);
+
+  //모달이 닫힐 때 input 데이터 비움
+  useEffect(() => {
+    if (!show && categoryInputRef.current) {
+      categoryInputRef.current.value = "";
+    }
+  }, [show]);
+
+  //카테고리 데이터
   const categories = useSelector(
     (state: RootState) => state.category.categories
   );
-  const addStatus = useSelector((state: RootState) => state.category.addStatus);
+
+  //카테고리 추가 상태
+  const createStatus = useSelector(
+    (state: RootState) => state.category.createStatus
+  );
+
   const dispatch = useDispatch<AppDispatch>();
 
-  useEffect(() => {
-    if (addStatus === "failed") {
-      window.alert("게임 카테고리 추가에 실패했습니다. 다시 시도해주세요.");
-      dispatch(clearAddCategoryStatus());
-      return;
-    }
-    if (addStatus === "success") {
-      dispatch(clearAddCategoryStatus());
-      close();
-      return;
-    }
-  }, [addStatus, close, dispatch]);
-
-  const categoryInputRef = useRef<HTMLInputElement>(null);
-
+  //카테고리 추가
   const categorySubmit = useCallback(async () => {
     const categoryTitle = categoryInputRef.current
       ? categoryInputRef.current.value.trim()
       : "";
+    //빈 텍스트인 경우
     if (!categoryTitle) {
       return;
     }
 
+    //특수문자 중 URI에 사용할 수 없는 특수 문자를 포함한 경우
     if (isIncludePathSpecial(categoryTitle)) {
       window.alert(
         `! * ${"`"} ' ; : @ & = + $ , / ? ${"\\"} # [ ] ( ) 는 포함할 수 없습니다.`
@@ -54,22 +59,32 @@ const AddCategory: FC<PropsType> = ({ show, close }) => {
       return;
     }
 
+    //이미 존재하는 카테고리인 경우
     if (categories.find((category) => category.title === categoryTitle)) {
       window.alert("이미 존재하는 게임입니다.");
       return;
     }
 
-    dispatch(addCategoryThunk(categoryTitle));
-    if (categoryInputRef.current) {
-      categoryInputRef.current.value = "";
-    }
+    //추가
+    dispatch(createCategoryThunk(categoryTitle));
   }, [categories, dispatch]);
 
+  //카테고리 추가 상태 변화에 따라 처리할 로직
   useEffect(() => {
-    if (!show && categoryInputRef.current) {
-      categoryInputRef.current.value = "";
+    if (createStatus === "failed") {
+      window.alert("게임 카테고리 추가에 실패했습니다. 다시 시도해주세요.");
+      dispatch(clearCreateCategoryStatus());
+      return;
     }
-  }, [show]);
+    if (createStatus === "success") {
+      dispatch(clearCreateCategoryStatus());
+      close();
+      return;
+    }
+  }, [createStatus, close, dispatch]);
+
+  //로딩 상태
+  const loading = createStatus === "pending";
 
   return (
     <Modal show={show} size="sm" centered onHide={close} backdrop="static">
@@ -91,15 +106,15 @@ const AddCategory: FC<PropsType> = ({ show, close }) => {
         <DefaultButton
           size="md"
           onClick={categorySubmit}
-          disabled={addStatus === "pending"}
+          disabled={loading}
           className={styles.btn}
         >
-          <LoadingBlock loading={addStatus === "pending"}>추가</LoadingBlock>
+          <LoadingBlock loading={loading}>추가</LoadingBlock>
         </DefaultButton>
         <DefaultButton
           size="md"
           onClick={close}
-          disabled={addStatus === "pending"}
+          disabled={loading}
           className={styles.btn}
         >
           취소
@@ -109,4 +124,4 @@ const AddCategory: FC<PropsType> = ({ show, close }) => {
   );
 };
 
-export default AddCategory;
+export default CreateCategoryModal;

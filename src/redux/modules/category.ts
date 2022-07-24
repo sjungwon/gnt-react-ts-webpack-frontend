@@ -20,7 +20,7 @@ interface CategoryState {
   //카테고리 배열 데이터
   categories: CategoryType[];
   //카테고리 추가 상태
-  addStatus: "idle" | "pending" | "success" | "failed";
+  createStatus: "idle" | "pending" | "success" | "failed";
   //카테고리 삭제 상태
   deleteStatus: "idle" | "pending" | "success" | "failed";
   //현재 선택된 카테고리
@@ -33,7 +33,7 @@ interface CategoryState {
 const initialState: CategoryState = {
   status: "idle",
   categories: [],
-  addStatus: "idle",
+  createStatus: "idle",
   deleteStatus: "idle",
   currentCategory: {
     title: "",
@@ -122,8 +122,8 @@ const categoryslice = createSlice({
       state.currentCategory = findedCategory || all;
     },
     //카테고리 추가 상태 clear
-    clearAddCategoryStatus: (state: CategoryState) => {
-      state.addStatus = "idle";
+    clearCreateCategoryStatus: (state: CategoryState) => {
+      state.createStatus = "idle";
     },
     //카테고리 삭제 상태 clear
     clearDeleteCategoryStatus: (state: CategoryState) => {
@@ -150,11 +150,11 @@ const categoryslice = createSlice({
       })
       //카테고리 추가 진행
       .addCase(createCategoryThunk.pending, (state, action) => {
-        state.addStatus = "pending";
+        state.createStatus = "pending";
       })
       //카테고리 추가 성공
       .addCase(createCategoryThunk.fulfilled, (state, action) => {
-        state.addStatus = "success";
+        state.createStatus = "success";
 
         const newCategory = action.payload as CategoryType;
         //새로 추가된 카테고리 순서 정렬
@@ -162,7 +162,7 @@ const categoryslice = createSlice({
       })
       //카테고리 추가 실패
       .addCase(createCategoryThunk.rejected, (state, action) => {
-        state.addStatus = "failed";
+        state.createStatus = "failed";
       })
       //카테고리 제거 진행
       .addCase(deleteCategoryThunk.pending, (state, action) => {
@@ -205,7 +205,7 @@ const categoryslice = createSlice({
 
 export const {
   setCurrentCategoryByTitle,
-  clearAddCategoryStatus,
+  clearCreateCategoryStatus,
   clearDeleteCategoryStatus,
 } = categoryslice.actions;
 
