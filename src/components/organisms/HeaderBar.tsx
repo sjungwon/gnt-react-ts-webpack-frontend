@@ -20,11 +20,14 @@ interface PropsType {
 
 export default function HeaderBar({ showCategoryHandler }: PropsType) {
   const username = useSelector((state: RootState) => state.auth.username);
+
   const navigate = useNavigate();
   const clickToLogin = useCallback(() => {
     navigate("/signin");
   }, [navigate]);
 
+  //모바일에서 사용
+  //검색바 열고 닫는 데이터
   const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
   const showSearchBarHandler = useCallback(() => {
     setShowSearchBar((prev) => !prev);
@@ -34,9 +37,10 @@ export default function HeaderBar({ showCategoryHandler }: PropsType) {
 
   const dispatch = useDispatch<AppDispatch>();
 
-  //모바일에서 search 버튼 클릭 시 searchBar 애니메이션 처리
+  //모바일에서 검색바 버튼 클릭 시 열고 닫을 때 searchBar 애니메이션 처리
   useEffect(() => {
     if (window.innerWidth > 829) {
+      //모바일이 아닌 경우
       return;
     }
     if (searchBarRef.current && showSearchBar) {
@@ -68,6 +72,7 @@ export default function HeaderBar({ showCategoryHandler }: PropsType) {
     }
   }, [isMobile]);
 
+  //유저 페이지로 이동
   const goHome = useCallback(() => {
     if (!username) {
       window.alert("로그인이 필요합니다.");
