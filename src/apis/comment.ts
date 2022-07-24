@@ -2,7 +2,7 @@ import { AxiosResponse } from "axios";
 import { CommentType } from "../redux/modules/post";
 import defaultAPI from "./default";
 
-export interface AddCommentReqData {
+export interface CreateCommentReqData {
   postId: string;
   category: string;
   profile: string;
@@ -18,7 +18,7 @@ export interface UpdateCommentReqData extends UpdateCommentReq {
   commentId: string;
 }
 
-export interface GetMoreCommentData {
+export interface GetCommentData {
   postId: string;
   lastCommentDate: string;
 }
@@ -29,7 +29,7 @@ class CommentAPI {
   private readonly APIWithToken = defaultAPI.APIWithToken;
 
   //GET 댓글 (더보기)
-  public readonly get = (data: GetMoreCommentData) => {
+  public readonly get = (data: GetCommentData) => {
     const path = this.path + "/" + data.postId + "/" + data.lastCommentDate;
     return this.API.get<CommentType[], AxiosResponse<CommentType[]>, void>(
       path
@@ -37,11 +37,11 @@ class CommentAPI {
   };
 
   //POST 댓글 생성
-  public readonly create = (data: AddCommentReqData) => {
+  public readonly create = (data: CreateCommentReqData) => {
     return this.APIWithToken.post<
       CommentType,
       AxiosResponse<CommentType>,
-      AddCommentReqData
+      CreateCommentReqData
     >(this.path, data);
   };
 

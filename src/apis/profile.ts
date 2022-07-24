@@ -3,7 +3,7 @@ import { TypedForm } from "../classes/TypedForm";
 import { ProfileType } from "../redux/modules/profile";
 import defaultAPI from "./default";
 
-export interface AddProfileReqType {
+export interface CreateProfileReqType {
   category: string;
   nickname: string;
   profileImage?: File;
@@ -37,7 +37,7 @@ class ProfileAPI {
   };
 
   //POST 프로필 생성
-  public readonly create = (profileData: TypedForm<AddProfileReqType>) => {
+  public readonly create = (profileData: TypedForm<CreateProfileReqType>) => {
     return this.APIWithToken.post<
       ProfileType,
       AxiosResponse<ProfileType>,

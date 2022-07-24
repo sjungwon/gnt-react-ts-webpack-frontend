@@ -4,7 +4,7 @@ import defaultAPI from "./default";
 
 // const path = "/categories";
 
-interface AddCategoryReqType {
+interface CreateCategoryReqType {
   title: string;
 }
 
@@ -31,7 +31,7 @@ class CategoryAPI {
     return this.APIWithToken.post<
       CategoryType,
       AxiosResponse<CategoryType>,
-      AddCategoryReqType
+      CreateCategoryReqType
     >(this.path, {
       title: newCategory,
     });

@@ -16,7 +16,7 @@ import {
   updateComment,
 } from "../../redux/modules/post";
 import commentAPI, {
-  AddCommentReqData,
+  CreateCommentReqData,
   UpdateCommentReqData,
 } from "../../apis/comment";
 import NeedLoginBlock from "../atoms/NeedLoginBlock";
@@ -109,7 +109,7 @@ export default function CreateComment({
       setLoading(false);
       return;
     }
-    const submitData: AddCommentReqData = {
+    const submitData: CreateCommentReqData = {
       postId,
       category: findedCategory._id,
       profile: currentProfile._id,

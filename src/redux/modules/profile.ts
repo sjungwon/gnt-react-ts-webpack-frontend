@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import profileAPI, {
-  AddProfileReqType,
+  CreateProfileReqType,
   UpdateProfileReqType,
 } from "../../apis/profile";
 import { TypedForm } from "../../classes/TypedForm";
@@ -36,7 +36,7 @@ export const getMyProfilesThunk = createAsyncThunk(
 //프로필 생성
 export const createProfileThunk = createAsyncThunk(
   "profile/add",
-  async (profileData: TypedForm<AddProfileReqType>) => {
+  async (profileData: TypedForm<CreateProfileReqType>) => {
     const response = await profileAPI.create(profileData);
     return response.data;
   }
