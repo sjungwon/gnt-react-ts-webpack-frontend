@@ -15,7 +15,7 @@ import {
   createComment,
   updateComment,
 } from "../../redux/modules/post";
-import CommentAPI, {
+import commentAPI, {
   AddCommentReqData,
   UpdateCommentReqData,
 } from "../../apis/comment";
@@ -29,45 +29,48 @@ interface PropsType {
   addCommentRenderLengthHandler?: () => void;
 }
 
-export default function AddComment({
+//댓글 추가 컴포넌트
+export default function CreateComment({
   postId,
   categoryTitle,
   prevData,
   addCommentRenderLengthHandler,
-}: // prevData,
-// commentsListHandlerWithRenderLength: commentsListHandler,
-PropsType) {
-  //유저 데이터 사용 -> 프로필, 이름
-
+}: PropsType) {
+  //빈 프로필 데이터
   const initialProfile = useSelector(
     (state: RootState) => state.profile.initialProfile
   );
+  //현재 프로필(선택된 프로필) -> 프로필 선택기에서 사용
   const [currentProfile, setCurrentProfile] =
     useState<ProfileType>(initialProfile);
 
-  //데이터 제출용 ref
+  //textArea ref
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  //데이터 제출
 
   const dispatch = useDispatch<AppDispatch>();
 
   const [loading, setLoading] = useState<boolean>(false);
 
+  //카테고리
   const categories = useSelector(
     (state: RootState) => state.category.categories
   );
 
+  //댓글 추가 제출
   const clickToSubmit = useCallback(async () => {
     const text = textAreaRef.current ? textAreaRef.current.value.trim() : "";
     if (!text || !currentProfile) {
+      //빈 텍스트거나 프로필을 선택 안한 경우
       return;
     }
 
     if (prevData) {
+      //수정인 경우
       if (
         prevData.text === text &&
         prevData.profile?._id === currentProfile._id
       ) {
+        //변경된 데이터가 없으면 취소 처리
         dispatch(clearModifyContentId());
         return;
       }
@@ -78,7 +81,7 @@ PropsType) {
         profile: currentProfile._id,
       };
       try {
-        const response = await CommentAPI.updateComment(submitData);
+        const response = await commentAPI.update(submitData);
         const updatedComment = response.data;
         dispatch(updateComment({ postId, updatedComment }));
         if (textAreaRef.current) {
@@ -93,9 +96,12 @@ PropsType) {
       setLoading(false);
       return;
     }
+    //추가인 경우
+    //카테고리가 존재하는지 확인
     const findedCategory = categories.find(
       (category) => category.title === categoryTitle
     );
+    //카테고리가 없으면 오류
     if (!findedCategory) {
       window.alert(
         "포스트를 추가하는데 오류가 발생했습니다. 다시 시도해주세요."
@@ -110,12 +116,13 @@ PropsType) {
       text,
     };
     try {
-      const response = await CommentAPI.createComment(submitData);
+      const response = await commentAPI.create(submitData);
       const newComment = response.data;
       dispatch(createComment({ postId, newComment }));
       if (textAreaRef.current) {
         textAreaRef.current.value = "";
       }
+      //댓글 list 렌더 길이 조절
       if (addCommentRenderLengthHandler) {
         addCommentRenderLengthHandler();
       }
@@ -147,7 +154,7 @@ PropsType) {
             <ProfileSelector
               size={"sm"}
               setCurrentProfile={setCurrentProfile}
-              category={categoryTitle}
+              categoryTitle={categoryTitle}
             />
           </CommentCard.Header>
           <CommentCard.Body>
