@@ -158,12 +158,18 @@ export default function CreateComment({
             />
           </CommentCard.Header>
           <CommentCard.Body>
-            <DefaultTextarea
-              ref={textAreaRef}
-              defaultValue={prevData?.text}
-              maxLength={250}
-              size="sm"
-            />
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <DefaultTextarea
+                ref={textAreaRef}
+                defaultValue={prevData?.text}
+                maxLength={250}
+                size="sm"
+              />
+            </form>
           </CommentCard.Body>
           <CommentCard.Buttons>
             <DefaultButton

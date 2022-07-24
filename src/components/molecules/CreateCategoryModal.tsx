@@ -92,15 +92,21 @@ const CreateCategoryModal: FC<PropsType> = ({ show, close }) => {
         <Modal.Title className={styles.title}>게임 카테고리 추가</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <DefaultTextInput
-          ref={categoryInputRef}
-          placeholder="게임 이름"
-          className={styles.input}
-        />
-        <p className={styles.text}>
-          카테고리를 생성한 사용자는 해당 카테고리의 모든 게시물을 관리할 수
-          있습니다.
-        </p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <DefaultTextInput
+            ref={categoryInputRef}
+            placeholder="게임 이름"
+            className={styles.input}
+          />
+          <p className={styles.text}>
+            카테고리를 생성한 사용자는 해당 카테고리의 모든 게시물을 관리할 수
+            있습니다.
+          </p>
+        </form>
       </Modal.Body>
       <Modal.Footer className={styles.footer}>
         <DefaultButton

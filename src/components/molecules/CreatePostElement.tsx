@@ -322,20 +322,22 @@ function PostForm({ show, currentProfile, prevData }: FormPropsType) {
   return (
     <>
       <Card.Footer className={styles.card_footer}>
-        <div className={styles.card_footer_btns}>
-          <ImageFileInputButton onImageFileInput={AddImages} multiple />
-          <DefaultButton onClick={removeImages} size="sq_md">
-            <BsTrash />
-          </DefaultButton>
-        </div>
-        {images.length ? (
-          <ImageSlide images={images} index={index} setIndex={setIndex} />
-        ) : null}
-        <DefaultTextarea
-          defaultValue={prevData?.text || ""}
-          ref={textRef}
-          size="lg"
-        />
+        <form onSubmit={(e) => e.preventDefault()}>
+          <div className={styles.card_footer_btns}>
+            <ImageFileInputButton onImageFileInput={AddImages} multiple />
+            <DefaultButton onClick={removeImages} size="sq_md">
+              <BsTrash />
+            </DefaultButton>
+          </div>
+          {images.length ? (
+            <ImageSlide images={images} index={index} setIndex={setIndex} />
+          ) : null}
+          <DefaultTextarea
+            defaultValue={prevData?.text || ""}
+            ref={textRef}
+            size="lg"
+          />
+        </form>
         <div className={styles.card_footer_bottom_btns}>
           <DefaultButton
             onClick={submit}
