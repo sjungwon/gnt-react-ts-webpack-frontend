@@ -8,10 +8,9 @@ import styles from "./scss/LayoutPage.module.scss";
 import useIsMobile from "../hooks/useIsMobile";
 
 export default function LayoutPage() {
+  //모바일에서 카테고리 열고 닫을 때 사용할 데이터
   const [showCategory, setShowCategory] = useState<boolean>(false);
-
   const { scrollLock, scrollRelease } = useScrollLock();
-
   const showCategoryHandler = useCallback(() => {
     setShowCategory((prev) => {
       if (prev) {
@@ -34,12 +33,13 @@ export default function LayoutPage() {
     }
   }, [isMobile]);
 
+  //카테고리 닫기
   const closeCategoryBar = useCallback(() => {
     setShowCategory(false);
     scrollRelease();
   }, [scrollRelease]);
 
-  //URI 변경되면 -> 다른 포스트 보여주면 스크롤 위로 이동
+  //URI 변경되면 -> 다른 카테고리 보여주면 스크롤 위로 이동
   const location = useLocation();
   useEffect(() => {
     setTimeout(() => {

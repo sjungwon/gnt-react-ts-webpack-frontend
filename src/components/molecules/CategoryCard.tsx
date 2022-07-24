@@ -134,12 +134,7 @@ export default function CategoryCard({ title }: PropsType) {
                 <>
                   <p className={styles.warning}>
                     {
-                      "컨텐츠(프로필, 포스트, 댓글, 대댓글)가 존재하는 카테고리는"
-                    }
-                  </p>
-                  <p className={styles.warning}>
-                    {
-                      "삭제할 수 없으며 카테고리 삭제에 성공하면 홈페이지로 이동됩니다."
+                      "컨텐츠(프로필, 포스트, 댓글, 대댓글)가 존재하는 카테고리는 삭제할 수 없으며 카테고리 삭제에 성공하면 홈페이지로 이동됩니다."
                     }
                   </p>
                 </>

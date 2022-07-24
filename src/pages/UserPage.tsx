@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import AddPostElement from "../components/molecules/AddPostElement";
+import CreatePostElement from "../components/molecules/CreatePostElement";
 import InfoCard from "../components/molecules/InfoCard";
 import UserCard from "../components/molecules/UserCard";
 import PostList from "../components/organisms/PostList";
@@ -27,7 +27,7 @@ export default function UserPage() {
     <>
       <InfoCard text={params.username} />
       {username === params.username ? (
-        <AddPostElement category="" />
+        <CreatePostElement categoryTitle="" />
       ) : (
         <UserCard username={params.username} />
       )}

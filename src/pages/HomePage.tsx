@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import AddPostElement from "../components/molecules/AddPostElement";
+import CreatePostElement from "../components/molecules/CreatePostElement";
 import InfoCard from "../components/molecules/InfoCard";
 import PostList from "../components/organisms/PostList";
 import { setCurrentCategoryByTitle } from "../redux/modules/category";
@@ -28,7 +28,7 @@ export default function HomePage() {
   return (
     <>
       <InfoCard text={"전체 보기"} />
-      <AddPostElement category="" />
+      <CreatePostElement categoryTitle="" />
       <PostList type="" />
     </>
   );
