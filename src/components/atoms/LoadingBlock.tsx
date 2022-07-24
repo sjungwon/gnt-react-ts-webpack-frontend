@@ -8,6 +8,7 @@ interface PropsType {
   size?: "md";
 }
 
+//loading시 spinner 돌림
 const LoadingBlock: FC<PropsType> = ({ loading, children, size }) => {
   if (!loading) {
     return <>{children}</>;

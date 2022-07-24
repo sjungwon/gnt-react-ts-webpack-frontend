@@ -3,10 +3,11 @@ import DefaultButton from "../atoms/DefaultButton";
 import LoadingBlock from "../atoms/LoadingBlock";
 import styles from "./scss/RemoveConfirmModal.module.scss";
 
-//모달 show state
-//모달 닫는 close 함수 -> show를 false로 변경하는 함수
-//remove -> comment, subcomment 제거하는 dispatch Thunk 함수
-//className -> width 조절용 className
+//show: 모달 여닫는 상태
+//close: 닫기
+//block: 차단 함수
+//contentType: 차단할 컨텐츠 타입
+//loading: 로딩 상태
 interface PropsType {
   show: boolean;
   close: () => void;
@@ -15,6 +16,7 @@ interface PropsType {
   loading: boolean;
 }
 
+//컨텐츠 차단 확인 모달
 export default function BlockConfirmModal({
   show,
   close,

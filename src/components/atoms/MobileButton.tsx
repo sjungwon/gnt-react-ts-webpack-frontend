@@ -7,6 +7,7 @@ interface PropsType extends ChildProps {
   className?: string;
 }
 
+//모바일에서만 보이는 버튼
 const MobileButton: FC<PropsType> = ({ children, onClick, className }) => {
   return (
     <button

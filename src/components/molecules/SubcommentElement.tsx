@@ -2,7 +2,7 @@ import styles from "./scss/SubcommentElement.module.scss";
 import { useCallback, useState } from "react";
 import { BsTrash, BsPencilSquare } from "react-icons/bs";
 import RemoveConfirmModal from "./RemoveConfirmModal";
-import AddSubcomment from "./AddSubcomment";
+import CreateSubcomment from "./CreateSubcomment";
 import ProfileBlock from "./ProfileBlock";
 import CommentCard from "../atoms/CommentCard";
 import DefaultButton from "../atoms/DefaultButton";
@@ -22,8 +22,11 @@ import { MdOutlineBlock } from "react-icons/md";
 import useHasCategoryProfile from "../../hooks/useHasCategoryProfile";
 
 interface SubcommentElementProps {
+  //대댓글 데이터
   subcomment: SubcommentType;
+  //대댓글 제거시 렌더 길이 조절
   deleteSubcommentRenderLengthHandler: () => void;
+  //post 카테고리
   categoryTitle: string;
 }
 
@@ -63,11 +66,23 @@ export default function SubcommentElement({
     deleteSubcommentRenderLengthHandler,
   ]);
 
+  //수정모드 인지 확인
   const modifyContentId = useSelector(
     (state: RootState) => state.post.modifyContentId
   );
+
+  //사용자가 대댓글 작성자인지 확인을 위한 데이터
   const username = useSelector((state: RootState) => state.auth.username);
 
+  //사용자가 카테고리 관리자인지 확인을 위한 카테고리 데이터
+  const categories = useSelector(
+    (state: RootState) => state.category.categories
+  );
+  const subcommentCategory = categories.find(
+    (category) => category.title === categoryTitle
+  );
+
+  //차단 모달 데이터
   const API = async () => {
     await SubcommentAPI.block(subcomment._id);
   };
@@ -79,14 +94,6 @@ export default function SubcommentElement({
     });
   };
 
-  const categories = useSelector(
-    (state: RootState) => state.category.categories
-  );
-
-  const subcommentCategory = categories.find(
-    (category) => category.title === subcomment.category.title
-  );
-
   const {
     showBlockModal,
     handleBlockModalClose,
@@ -97,9 +104,10 @@ export default function SubcommentElement({
 
   const hasCategoryProfile = useHasCategoryProfile(categoryTitle);
 
+  //수정 모드인 경우
   if (modifyContentId === subcomment._id) {
     return (
-      <AddSubcomment
+      <CreateSubcomment
         postId={subcomment.postId}
         commentId={subcomment.commentId}
         prevData={subcomment}

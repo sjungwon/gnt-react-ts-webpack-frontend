@@ -8,7 +8,7 @@ import {
 } from "../../redux/modules/profile";
 import { AppDispatch, RootState } from "../../redux/store";
 import DefaultButton from "../atoms/DefaultButton";
-import AddProfileModal from "./AddProfileModal";
+import CreateProfileModal from "./CreateProfileModal";
 import ProfileBlock from "./ProfileBlock";
 import RemoveConfirmModal from "./RemoveConfirmModal";
 import styles from "./scss/UserProfileList.module.scss";
@@ -17,6 +17,11 @@ interface PropsType {
   filtered?: true;
 }
 
+//유저 프로필 리스트 렌더
+//렌더 방식은 프로필 리스트와 동일
+//다른 점은
+//전역 선택된 카테고리에 따라 프로필을 filter해서 렌더하거나
+//프로필 수정, 제거 버튼이 추가로 렌더됨
 export default function UserProfileList({ filtered }: PropsType) {
   const username = useSelector((state: RootState) => state.auth.username);
   const profiles = useSelector((state: RootState) => state.profile.profiles);
@@ -56,7 +61,7 @@ export default function UserProfileList({ filtered }: PropsType) {
             프로필 추가
           </DefaultButton>
         </div>
-        <AddProfileModal
+        <CreateProfileModal
           show={showAdd}
           close={closeShowAdd}
           categoryTitle={filtered ? currentCategory.title : ""}
@@ -213,7 +218,7 @@ const ProfileLiEl: FC<{
         >
           수정
         </DefaultButton>
-        <AddProfileModal
+        <CreateProfileModal
           show={showUpdate}
           close={showUpdateClose}
           prevData={profile}

@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { Card } from "react-bootstrap";
-import styles from "./scss/AddPostElement.module.scss";
+import styles from "./scss/CreatePostElement.module.scss";
 import DefaultButton from "../atoms/DefaultButton";
 import DefaultTextarea from "../atoms/DefaultTextarea";
 import LoadingBlock from "../atoms/LoadingBlock";
@@ -19,7 +19,7 @@ import ImageFileInputButton from "../atoms/ImageFileInputButton";
 import { BsTrash } from "react-icons/bs";
 import ImageSlide, { ImageType } from "./ImageSlide";
 import { TypedForm } from "../../classes/TypedForm";
-import { AddPostReqType, UpdatePostReqType } from "../../apis/post";
+import postAPI, { CreatePostReqType, UpdatePostReqType } from "../../apis/post";
 import {
   clearModifyContentId,
   createPost,
@@ -27,45 +27,50 @@ import {
   setModifyContentId,
   updatePost,
 } from "../../redux/modules/post";
-import PostAPI from "../../apis/post";
 
 interface Props {
-  category: string;
+  categoryTitle: string;
   prevData?: PostType;
 }
 
 //prevData에 따라 수정, 추가 상태 결정
-export default function AddPostElement({ category, prevData }: Props) {
+export default function CreatePostElement({ categoryTitle, prevData }: Props) {
   //prevData 유무에 따라 form을 바로 보여줄 지 결정
   const [show, setShow] = useState(!!prevData);
 
+  //수정 mode인 content id 가져옴
   const modifyContentId = useSelector(
     (state: RootState) => state.post.modifyContentId
   );
   const dispatch = useDispatch<AppDispatch>();
   //form 열고 닫는 함수
   const showHandler = useCallback(() => {
+    //수정인 경우엔 form이 항상 열려있어야함
     if (prevData) {
       return;
     }
-    if (modifyContentId !== "addPost") {
-      dispatch(setModifyContentId("addPost"));
+    //post 추가인 경우엔 id를 createPost로 변경
+    if (modifyContentId !== "createPost") {
+      dispatch(setModifyContentId("createPost"));
     } else {
       dispatch(clearModifyContentId());
     }
   }, [dispatch, modifyContentId, prevData]);
 
+  //modifyContentId에 맞춰 form 열고 닫기
   useEffect(() => {
     if (prevData) {
       return;
     }
-    setShow(modifyContentId === "addPost");
+    setShow(modifyContentId === "createPost");
   }, [modifyContentId, prevData]);
 
   const username = useSelector((state: RootState) => state.auth.username);
   const profiles = useSelector((state: RootState) => state.profile.profiles);
 
+  //카테고리가 선택된 경우 카테고리에 맞는 프로필로 제한
   const [filteredProfiles, setFilteredProfiles] = useState<ProfileType[]>([]);
+  //선택된 프로필
   const [currentProfile, setCurrentProfile] = useState<
     ProfileType | undefined
   >();
@@ -85,14 +90,14 @@ export default function AddPostElement({ category, prevData }: Props) {
       }
       return;
     }
-    const filteredProfileTmp = category
-      ? profiles.filter((profile) => profile.category.title === category)
+    const filteredProfileTmp = categoryTitle
+      ? profiles.filter((profile) => profile.category.title === categoryTitle)
       : profiles;
     setFilteredProfiles(filteredProfileTmp);
     setCurrentProfile(
       filteredProfileTmp.length ? filteredProfileTmp[0] : undefined
     );
-  }, [category, prevData, profiles]);
+  }, [categoryTitle, prevData, profiles]);
 
   return (
     <Card className={styles.card}>
@@ -119,7 +124,7 @@ export default function AddPostElement({ category, prevData }: Props) {
               <ProfileSelector
                 size="sm"
                 setCurrentProfile={setCurrentProfile}
-                category={category}
+                categoryTitle={categoryTitle}
               />
             </div>
           </div>
@@ -168,6 +173,7 @@ function PostForm({ show, currentProfile, prevData }: FormPropsType) {
     }
   }, [prevData]);
 
+  //이미지 추가 handler
   const AddImages: ChangeEventHandler<HTMLInputElement> = (event) => {
     const inputFiles = event.target.files;
     if (inputFiles) {
@@ -181,10 +187,11 @@ function PostForm({ show, currentProfile, prevData }: FormPropsType) {
     }
   };
 
+  //수정인 경우 제거된 이미지가 있으면 제거된 이미지 저장해서 서버에 전송
   const [removedImages, setRemovedImages] = useState<ImageType[]>([]);
 
   //이미지 제거 -> 수정인 경우엔 이전 이미지 제거
-  //새로 추가된 이미지면 그냥 제거, 원래 있던 이미지면 제거된 이미지로 데이터 전송
+  //새로 추가된 이미지면 그냥 제거, 원래 있던 이미지면 removedImages에 저장해서 서버에 전송
   const removeImages = () => {
     const removeImage = images[index];
     //새로 추가된 이미지가 아닌 경우
@@ -208,13 +215,18 @@ function PostForm({ show, currentProfile, prevData }: FormPropsType) {
   //제출 버튼 눌렀을 때 사용할 함수
   const submit = async () => {
     const text = textRef.current?.value.trim();
-    // if (text || images.length) {
+    if (!text && !images.length && !currentProfile) {
+      //데이터가 없는 경우 무시
+      return;
+    }
     if ((text || images.length) && currentProfile) {
-      let data: AddPostReqType = {
+      //텍스트가 있거나 이미지가 있는 경우 && 선택된 프로필이 있는 경우
+      let data: CreatePostReqType = {
         text: text ? text : "",
         profile: currentProfile._id,
         category: currentProfile.category._id,
       };
+      //새로 추가된 이미지가 있으면 추가
       if (files.length) {
         data = {
           ...data,
@@ -222,7 +234,22 @@ function PostForm({ show, currentProfile, prevData }: FormPropsType) {
         };
       }
       if (prevData) {
-        //바뀐게 없으면 그냥 닫아야함
+        //수정인 경우
+        if (
+          prevData.postImages === images &&
+          prevData.profile?._id === currentProfile._id &&
+          prevData.text === text
+        ) {
+          //바뀐게 없는 경우 그냥 닫아야함
+          dispatch(clearModifyContentId());
+          setLoading(false);
+          setImages([]);
+          setFiles([]);
+          if (textRef.current) {
+            textRef.current.value = "";
+          }
+          return;
+        }
         let updateData: UpdatePostReqType = {
           ...data,
           _id: prevData._id,
@@ -236,7 +263,7 @@ function PostForm({ show, currentProfile, prevData }: FormPropsType) {
         const formData = new TypedForm<UpdatePostReqType>(updateData);
         try {
           setLoading(true);
-          const response = await PostAPI.update(formData);
+          const response = await postAPI.update(formData);
           const updatedPost = response.data;
           dispatch(updatePost(updatedPost));
           dispatch(clearModifyContentId());
@@ -253,10 +280,11 @@ function PostForm({ show, currentProfile, prevData }: FormPropsType) {
           setLoading(false);
         }
       } else {
-        const formData = new TypedForm<AddPostReqType>(data);
+        //추가인 경우
+        const formData = new TypedForm<CreatePostReqType>(data);
         try {
           setLoading(true);
-          const response = await PostAPI.create(formData);
+          const response = await postAPI.create(formData);
           const newPost = response.data;
           dispatch(createPost(newPost));
           dispatch(clearModifyContentId());
@@ -276,6 +304,7 @@ function PostForm({ show, currentProfile, prevData }: FormPropsType) {
     }
   };
 
+  //취소
   const cancleModify = useCallback(() => {
     dispatch(clearModifyContentId());
     setImages([]);
@@ -285,6 +314,7 @@ function PostForm({ show, currentProfile, prevData }: FormPropsType) {
     }
   }, [dispatch]);
 
+  //추가인경우 form이 닫혀있을 수 있음
   if (!show || !currentProfile) {
     return null;
   }
@@ -292,20 +322,22 @@ function PostForm({ show, currentProfile, prevData }: FormPropsType) {
   return (
     <>
       <Card.Footer className={styles.card_footer}>
-        <div className={styles.card_footer_btns}>
-          <ImageFileInputButton onImageFileInput={AddImages} multiple />
-          <DefaultButton onClick={removeImages} size="sq_md">
-            <BsTrash />
-          </DefaultButton>
-        </div>
-        {images.length ? (
-          <ImageSlide images={images} index={index} setIndex={setIndex} />
-        ) : null}
-        <DefaultTextarea
-          defaultValue={prevData?.text || ""}
-          ref={textRef}
-          size="lg"
-        />
+        <form onSubmit={(e) => e.preventDefault()}>
+          <div className={styles.card_footer_btns}>
+            <ImageFileInputButton onImageFileInput={AddImages} multiple />
+            <DefaultButton onClick={removeImages} size="sq_md">
+              <BsTrash />
+            </DefaultButton>
+          </div>
+          {images.length ? (
+            <ImageSlide images={images} index={index} setIndex={setIndex} />
+          ) : null}
+          <DefaultTextarea
+            defaultValue={prevData?.text || ""}
+            ref={textRef}
+            size="lg"
+          />
+        </form>
         <div className={styles.card_footer_bottom_btns}>
           <DefaultButton
             onClick={submit}

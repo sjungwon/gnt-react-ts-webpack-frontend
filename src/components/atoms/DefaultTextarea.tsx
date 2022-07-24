@@ -16,12 +16,14 @@ const calcByte = (value: string) => {
   return textByte;
 };
 
+//textarea
 const DefaultTextarea = forwardRef<HTMLTextAreaElement, PropsType>(
   ({ maxLength = 500, defaultValue, size }, textAreaRef) => {
     const [currentTextByte, setCurrentTextByte] = useState<number>(
       defaultValue ? calcByte(defaultValue) : 0
     );
 
+    //텍스트 byte 계산
     const calcCurrentByte = useCallback(
       (event: any) => {
         const textArea = event.target as HTMLTextAreaElement;
@@ -29,6 +31,7 @@ const DefaultTextarea = forwardRef<HTMLTextAreaElement, PropsType>(
 
         const textByte = calcByte(value);
 
+        //제한된 크기 넘어가면 제한된 크기로 잘라냄
         if (textByte > maxLength) {
           const over = textByte - maxLength;
           let index = value.length - 1;
@@ -51,6 +54,7 @@ const DefaultTextarea = forwardRef<HTMLTextAreaElement, PropsType>(
       [maxLength]
     );
 
+    //텍스트가 있으면 텍스트 끝으로 커서 이동, 없으면 처음으로
     const textFocusControl = useCallback(
       (e: any) =>
         (e.currentTarget.selectionStart = e.currentTarget.selectionEnd =

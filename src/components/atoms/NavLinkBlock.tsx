@@ -7,6 +7,7 @@ interface PropsType {
   to: string;
 }
 
+//navLink의 디자인 변경
 const NavLinkBlock: FC<PropsType> = ({ children, to }) => {
   return (
     <NavLink to={to} className={styles.nav_link}>

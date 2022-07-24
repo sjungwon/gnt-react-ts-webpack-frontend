@@ -1,7 +1,7 @@
 import { FC, ReactNode, useCallback, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-import AddProfileModal from "../molecules/AddProfileModal";
+import CreateProfileModal from "../molecules/CreateProfileModal";
 import DefaultButton from "./DefaultButton";
 import styles from "./scss/NeedProfileBlock.module.scss";
 
@@ -11,6 +11,7 @@ interface PropsType {
   categoryTitle: string;
 }
 
+//프로필이 필요한 경우 프로필 필요 메세지와 추가 버튼 반환
 const NeedProfileBlock: FC<PropsType> = ({
   children,
   requiredMessage,
@@ -39,7 +40,7 @@ const NeedProfileBlock: FC<PropsType> = ({
       <DefaultButton size="md" onClick={openMd} className={styles.add_profile}>
         프로필 추가
       </DefaultButton>
-      <AddProfileModal
+      <CreateProfileModal
         show={mdShow}
         close={closeMd}
         categoryTitle={categoryTitle}

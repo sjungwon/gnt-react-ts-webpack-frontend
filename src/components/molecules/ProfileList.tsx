@@ -25,6 +25,7 @@ export default function ProfileList({ profileArr }: PropsType) {
   );
 }
 
+//카테고리 별로 프로필 모아서 렌더
 const CategorizedProfileList: FC<{
   profileArr: ProfileType[];
 }> = ({ profileArr }) => {
@@ -39,10 +40,12 @@ const CategorizedProfileList: FC<{
             origArr: ProfileType[]
           ) => {
             if (i === profileArr.length - 1) {
+              //마지막 프로필인 경우
               if (
                 i > 0 &&
                 origArr[i].category.title !== origArr[i - 1].category.title
               ) {
+                //마지막 요소가 카테고리가 다른 경우
                 const ulEl = (
                   <ProfileWithMenu
                     profileArr={[...total.profileArr]}
@@ -57,6 +60,7 @@ const CategorizedProfileList: FC<{
                   profileArr: [],
                 };
               }
+              //마지막 요소도 카테고리가 이전 요소와 동일한 경우
               const ulEl = (
                 <ProfileWithMenu
                   profileArr={[...total.profileArr, profile]}
@@ -72,6 +76,7 @@ const CategorizedProfileList: FC<{
               i !== 0 &&
               origArr[i].category.title !== origArr[i - 1].category.title
             ) {
+              //카테고리가 달라진 경우
               const ulEl = (
                 <ProfileWithMenu
                   profileArr={total.profileArr}
@@ -83,6 +88,7 @@ const CategorizedProfileList: FC<{
                 profileArr: [profile],
               };
             }
+            //카테고리가 동일한 경우
             return {
               ...total,
               profileArr: [...total.profileArr, profile],
@@ -95,6 +101,7 @@ const CategorizedProfileList: FC<{
   );
 };
 
+//카테고리 + 카테고리에 포함된 프로필 리스트
 const ProfileWithMenu: FC<{
   profileArr: ProfileType[];
 }> = ({ profileArr }) => {
@@ -112,6 +119,7 @@ const ProfileWithMenu: FC<{
   );
 };
 
+//단일 프로필
 const ProfileLiEl: FC<{
   profile: ProfileType;
 }> = ({ profile }) => {

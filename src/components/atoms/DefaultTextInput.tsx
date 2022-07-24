@@ -22,6 +22,7 @@ interface PropsType {
   name?: string;
 }
 
+//기본 input tag
 const DefaultTextInput = forwardRef<HTMLInputElement, PropsType>(
   (
     {

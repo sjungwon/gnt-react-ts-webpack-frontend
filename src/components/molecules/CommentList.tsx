@@ -8,14 +8,19 @@ import CommentElement from "./CommentElement";
 import { CommentType, getMoreComments } from "../../redux/modules/post";
 import { AppDispatch } from "../../redux/store";
 import { useDispatch } from "react-redux";
-import AddComment from "./AddComment";
-import CommentAPI from "../../apis/comment";
+import commentAPI from "../../apis/comment";
+import CreateComment from "./CreateComment";
 
 interface CommentElementProps {
+  //comment 더 가져올 때 어떤 post인지 알기 위한 id
   postId: string;
+  //catagory 정보
   categoryTitle: string;
+  //post쪽에서 댓글 열었는지에 대한 상태
   showComment: boolean;
+  //댓글 리스트
   comments: CommentType[];
+  //총 댓글 개수
   commentsCount: number;
 }
 
@@ -26,6 +31,7 @@ export default function CommentList({
   comments,
   commentsCount,
 }: CommentElementProps) {
+  //댓글 몇개 보여줄 건지 조절
   const [renderLength, setRenderLength] = useState<number>(
     comments.length > 2 ? 3 : comments.length
   );
@@ -36,9 +42,10 @@ export default function CommentList({
 
   const moreRenderLengthHandler = useCallback(async () => {
     if (renderLength >= comments.length && comments.length < commentsCount) {
+      //댓글 더 가져올 수 있는 경우
       setLoading(true);
       try {
-        const response = await CommentAPI.getMoreComments({
+        const response = await commentAPI.get({
           postId,
           lastCommentDate: comments[comments.length - 1].createdAt,
         });
@@ -53,20 +60,24 @@ export default function CommentList({
         setLoading(false);
       }
     } else {
+      //더 보여줄 댓글이 있는 경우
       setRenderLength((prev) =>
         prev + 3 > comments.length ? comments.length : prev + 3
       );
     }
   }, [comments, commentsCount, dispatch, postId, renderLength]);
 
+  //댓글 더보기 닫기
   const closeRenderLengthHandler = useCallback(() => {
     setRenderLength(comments.length > 2 ? 3 : comments.length);
   }, [comments.length]);
 
+  //댓글 추가된 경우 렌더 길이 하나 늘리기
   const addCommentRenderLengthHandler = useCallback(() => {
     setRenderLength((prev) => prev + 1);
   }, []);
 
+  //제거된 경우 하나 줄이기
   const removeCommentRenderLengthHandler = useCallback(() => {
     setRenderLength((prev) => prev - 1);
   }, []);
@@ -74,11 +85,12 @@ export default function CommentList({
   //렌더
   //comment를 열지 않았을 때
   if (!showComment) {
-    //Comment가 없는 경우
+    //댓글 없는 경우
     if (!comments.length) {
       return null;
     }
 
+    //댓글 있는 경우
     if (comments.length) {
       return (
         <>
@@ -97,7 +109,7 @@ export default function CommentList({
   //Comment를 연 경우
   return (
     <>
-      <AddComment
+      <CreateComment
         postId={postId}
         categoryTitle={categoryTitle}
         addCommentRenderLengthHandler={addCommentRenderLengthHandler}

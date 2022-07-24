@@ -3,7 +3,6 @@ import { useCallback, useState } from "react";
 import { BsTrash, BsPencilSquare } from "react-icons/bs";
 import { MdOutlineBlock } from "react-icons/md";
 import RemoveConfirmModal from "./RemoveConfirmModal";
-import AddComment from "./AddComment";
 import CommentCard from "../atoms/CommentCard";
 import DefaultButton from "../atoms/DefaultButton";
 import ProfileBlock from "./ProfileBlock";
@@ -15,26 +14,33 @@ import {
 } from "../../redux/modules/post";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
-import CommentAPI from "../../apis/comment";
+import commentAPI from "../../apis/comment";
 import SubcommentList from "./SubcommentList";
 import CommentsButton from "../atoms/CommentsButton";
 import useHasCategoryProfile from "../../hooks/useHasCategoryProfile";
 import useBlockContent from "../../hooks/useBlockContent";
 import BlockConfirmModal from "./BlockConfirmModal";
+import CreateComment from "./CreateComment";
 
 interface CommentElementProps {
+  //post 카테고리 전달
   categoryTitle: string;
+  //댓글 데이터
   comment: CommentType;
+  //post에서 댓글을 열었는지에 대한 상태 정보
   parentShowComment: boolean;
+  //댓글 제거 시 댓글 리스트에서 렌더 길이 조절
   removeCommentRenderLengthHandler: () => void;
 }
 
+//댓글 컴포넌트
 export default function CommentElement({
   categoryTitle,
   comment,
   parentShowComment,
   removeCommentRenderLengthHandler,
 }: CommentElementProps) {
+  //로그인 유저가 소유한 댓글인지 확인할 때 사용
   const username = useSelector((state: RootState) => state.auth.username);
 
   //삭제 확인 모달
@@ -53,12 +59,14 @@ export default function CommentElement({
   }, [comment.subcommentsCount]);
 
   const dispatch = useDispatch<AppDispatch>();
-  //모달에 전달 -> 모달에서 제거 누르면 실행
+
   const [loading, setLoading] = useState<boolean>(false);
+
+  //댓글 제거
   const removeComment = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await CommentAPI.deleteComment(comment._id);
+      const response = await commentAPI.delete(comment._id);
       const deletedComment = response.data;
       dispatch(deleteComment({ postId: comment.postId, deletedComment }));
       removeCommentRenderLengthHandler();
@@ -69,16 +77,12 @@ export default function CommentElement({
     }
   }, [comment._id, comment.postId, dispatch, removeCommentRenderLengthHandler]);
 
-  const modifyContentId = useSelector(
-    (state: RootState) => state.post.modifyContentId
-  );
-
   const [addSubcomment, setAddSubcomment] = useState<boolean>(false);
 
   const hasCategoryProfile = useHasCategoryProfile(categoryTitle);
 
   const API = async () => {
-    await CommentAPI.blockComment(comment._id);
+    await commentAPI.block(comment._id);
   };
   const actionCreator = () => {
     return blockComment({ postId: comment.postId, commentId: comment._id });
@@ -88,10 +92,14 @@ export default function CommentElement({
     (state: RootState) => state.category.categories
   );
 
+  //댓글 카테고리
+  //사용자가 댓글 작성자가 아니더라도
+  //카테고리 관리자인지 확인하기 위해 카테고리 데이터 가져옴
   const commentCategory = categories.find(
-    (category) => category.title === comment.category.title
+    (category) => category.title === categoryTitle
   );
 
+  //차단 확인 모달에 사용할 데이터
   const {
     showBlockModal,
     handleBlockModalClose,
@@ -100,10 +108,15 @@ export default function CommentElement({
     sendBlockContent,
   } = useBlockContent({ API, actionCreator, contentType: "댓글" });
 
+  const modifyContentId = useSelector(
+    (state: RootState) => state.post.modifyContentId
+  );
+
+  //현재 댓글 데이터가 수정 ID인 경우
   if (comment._id === modifyContentId) {
     return (
       <>
-        <AddComment
+        <CreateComment
           postId={comment.postId}
           prevData={comment}
           categoryTitle={categoryTitle}

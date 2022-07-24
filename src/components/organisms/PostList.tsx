@@ -1,6 +1,6 @@
 import styles from "./scss/PostList.module.scss";
 import PostElement from "../molecules/PostElement";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineCheck } from "react-icons/ai";
 // import LoadingBlock from "../atoms/LoadingBlock";
 // import UserMenuFixedButton from "../molecules/UserMenuFixedButton";
@@ -8,8 +8,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
 import {
   clearPosts,
-  getPostByCategoryThunk,
-  getPostByProfileThunk,
+  getPostByCategoryIdThunk,
+  getPostByProfileIdThunk,
   getPostByUsernameThunk,
   getPostThunk,
 } from "../../redux/modules/post";
@@ -20,14 +20,12 @@ interface PropsType {
   params?: string;
 }
 
+//포스트 리스트
 export default function PostList({ type, params }: PropsType) {
   const posts = useSelector((state: RootState) => state.post.posts);
   const status = useSelector((state: RootState) => state.post.status);
 
   const dispatch = useDispatch<AppDispatch>();
-  const loading = useMemo(() => {
-    return status === "pending";
-  }, [status]);
 
   const currentCategory = useSelector(
     (state: RootState) => state.category.currentCategory
@@ -35,13 +33,15 @@ export default function PostList({ type, params }: PropsType) {
 
   const sendQuery = useCallback(async () => {
     if (status !== "done" && status !== "failed" && status !== "pending") {
+      //포스트를 다 가져왔거나, 오류가 발생했거나, 가져오는 중이 아닌 경우
+      //이전에 받아온 데이터가 있으면 date 설정
       const lastPostDate = posts.length
         ? posts[posts.length - 1].createdAt
         : "";
       switch (type) {
         case "category": {
           dispatch(
-            getPostByCategoryThunk({
+            getPostByCategoryIdThunk({
               categoryId: currentCategory._id,
               lastPostDate,
             })
@@ -50,7 +50,7 @@ export default function PostList({ type, params }: PropsType) {
         }
         case "profile": {
           dispatch(
-            getPostByProfileThunk({
+            getPostByProfileIdThunk({
               profileId: params || "",
               lastPostDate,
             })
@@ -74,8 +74,17 @@ export default function PostList({ type, params }: PropsType) {
     }
   }, [currentCategory._id, dispatch, params, posts, status, type]);
 
+  //무한 스크롤 로드할 때 observe에 사용할 하단 컴포넌트
   const loader = useRef<HTMLDivElement>(null);
 
+  //페이지로 처리하도록 설정
+  //observer 설정하는 쪽에서
+  //useEffect로 처리해서
+  //변화하는 데이터로 handle 함수 정의 못함
+  //추가로 sendQuery 함수가 의존 데이터에 의해
+  //변경되는 경우 sendQuery 보내지 않도록
+  //page와 prevPage 두개를 두고 비교해서
+  //page 변경시에만 query 던지도록 설정
   const [prevPage, setPrevPage] = useState<number>(0);
   const [page, setPage] = useState<number>(0);
 
@@ -126,11 +135,12 @@ export default function PostList({ type, params }: PropsType) {
     };
   }, [handleObserver]);
 
+  const loading = status === "pending";
+
   //렌더
   //post가 있는 경우
   return (
     <section>
-      {/* <div className={styles.container}> */}
       {/* <UserMenuFixedButton />
         <h3 className={styles.category}>{title}</h3>
         {category === "usernames" && decodeURI(searchParam) !== username ? (
@@ -159,7 +169,6 @@ export default function PostList({ type, params }: PropsType) {
           </LoadingBlock>
         </div>
       </div>
-      {/* </div> */}
     </section>
   );
 }

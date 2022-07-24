@@ -1,15 +1,5 @@
-import {
-  ButtonHTMLAttributes,
-  forwardRef,
-  MouseEventHandler,
-  ReactNode,
-} from "react";
+import { forwardRef, MouseEventHandler, ReactNode } from "react";
 import styles from "./scss/DefaultButton.module.scss";
-
-interface CustomAttributes {
-  "data-index": string;
-  "data-type": string;
-}
 
 interface PropsType {
   children: ReactNode;
@@ -18,24 +8,12 @@ interface PropsType {
   className?: string;
   disabled?: boolean;
   color?: "blue" | "default";
-  attributes?: CustomAttributes &
-    React.DetailedHTMLProps<
-      ButtonHTMLAttributes<HTMLButtonElement>,
-      HTMLButtonElement
-    >;
 }
 
+//기본 버튼
 const DefaultButton = forwardRef<HTMLButtonElement, PropsType>(
   (
-    {
-      children,
-      size,
-      onClick,
-      className,
-      disabled,
-      color = "default",
-      attributes,
-    },
+    { children, size, onClick, className, disabled, color = "default" },
     buttonRef
   ) => {
     return (
@@ -45,7 +23,6 @@ const DefaultButton = forwardRef<HTMLButtonElement, PropsType>(
         } ${styles[`btn_${size}`]} ${className ? className : ""}`}
         onClick={onClick}
         disabled={disabled}
-        {...attributes}
         ref={buttonRef}
       >
         {children}

@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
 import { SubcommentType } from "../redux/modules/post";
-import { API, APIWithToken } from "./basic";
+import defaultAPI from "./default";
 
 export interface CreateSubcommentData {
   postId: string;
@@ -18,38 +18,47 @@ export interface UpdateSubcommentData {
 
 class SubcommentAPI {
   private path = "/subcomments";
+  private readonly API = defaultAPI.API;
+  private readonly APIWithToken = defaultAPI.APIWithToken;
 
-  public getMore = (commentId: string, lastSubcommentDate: string) => {
+  //GET 대댓글 (댓글에 대한 대댓글 6개)
+  public get = (commentId: string, lastSubcommentDate: string) => {
     const path = this.path + "/" + commentId + "/" + lastSubcommentDate;
-    return API.get<SubcommentType[], AxiosResponse<SubcommentType[]>, void>(
-      path
-    );
+    return this.API.get<
+      SubcommentType[],
+      AxiosResponse<SubcommentType[]>,
+      void
+    >(path);
   };
 
+  //POST 대댓글 생성
   public create = (data: CreateSubcommentData) => {
-    return APIWithToken.post<
+    return this.APIWithToken.post<
       SubcommentType,
       AxiosResponse<SubcommentType>,
       CreateSubcommentData
     >(this.path, data);
   };
 
+  //PATCH 대댓글 수정
   public update = (data: UpdateSubcommentData) => {
-    return APIWithToken.patch<
+    return this.APIWithToken.patch<
       SubcommentType,
       AxiosResponse<SubcommentType>,
       UpdateSubcommentData
     >(this.path, data);
   };
 
+  //PATCH 대댓글 차단
   public block = (subcommentId: string) => {
     const path = this.path + "/block/" + subcommentId;
-    return APIWithToken.patch<void, AxiosResponse<void>, void>(path);
+    return this.APIWithToken.patch<void, AxiosResponse<void>, void>(path);
   };
 
+  //대댓글 삭제
   public delete = (subcommentId: string) => {
     const path = this.path + "/" + subcommentId;
-    return APIWithToken.delete<
+    return this.APIWithToken.delete<
       SubcommentType,
       AxiosResponse<SubcommentType>,
       void
@@ -57,4 +66,6 @@ class SubcommentAPI {
   };
 }
 
-export default new SubcommentAPI();
+const subcommentAPI = new SubcommentAPI();
+
+export default subcommentAPI;

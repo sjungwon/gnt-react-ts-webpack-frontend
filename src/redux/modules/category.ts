@@ -1,12 +1,22 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AxiosError, AxiosResponse } from "axios";
-import {
-  addCategoryAPI,
-  deleteCategoryAPI,
-  getCategoryAPI,
-} from "../../apis/category";
-import { SortCategory } from "../../functions/SortFunc";
+import { AxiosError } from "axios";
+import categoryAPI from "../../apis/category";
 
+const SortCategory = (categories: CategoryType[]) => {
+  const sortedCategories = [...categories].sort((a, b) => {
+    if (a.title < b.title) {
+      return -1;
+    } else if (a.title > b.title) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+
+  return sortedCategories;
+};
+
+//카테고리 데이터 타입
 export interface CategoryType {
   title: string;
   _id: string;
@@ -16,60 +26,27 @@ export interface CategoryType {
   };
 }
 
-//function
-
-//Thunks
-export const getCategoryThunk = createAsyncThunk(
-  "category/get",
-  async (): Promise<CategoryType[] | AxiosError> => {
-    try {
-      const response = await getCategoryAPI();
-      return response.data;
-    } catch (err) {
-      return Promise.reject(err as AxiosError);
-    }
-  }
-);
-
-export const addCategoryThunk = createAsyncThunk(
-  "category/add",
-  async (newCategoryTitle: string): Promise<CategoryType | AxiosError> => {
-    try {
-      const response = await addCategoryAPI(newCategoryTitle);
-      return response.data;
-    } catch (err) {
-      return Promise.reject(err as AxiosError);
-    }
-  }
-);
-
-export const deleteCategoryThunk = createAsyncThunk(
-  "category/delete",
-  async (categoryId: string, { rejectWithValue }) => {
-    try {
-      await deleteCategoryAPI(categoryId);
-      return categoryId;
-    } catch (err) {
-      console.log(err);
-      return rejectWithValue((err as AxiosError).response);
-    }
-  }
-);
-
+//카테고리 상태 타입
 interface CategoryState {
+  //카테고리 가져오기 상태
   status: "idle" | "pending" | "success" | "failed";
+  //카테고리 배열 데이터
   categories: CategoryType[];
-  addStatus: "idle" | "pending" | "success" | "failed";
+  //카테고리 추가 상태
+  createStatus: "idle" | "pending" | "success" | "failed";
+  //카테고리 삭제 상태
   deleteStatus: "idle" | "pending" | "success" | "failed";
+  //현재 선택된 카테고리
   currentCategory: CategoryType;
+  //초기 카테고리 상태 값
   initialCategory: CategoryType;
 }
 
-//initialState
+//카테고리 초기 상태
 const initialState: CategoryState = {
   status: "idle",
   categories: [],
-  addStatus: "idle",
+  createStatus: "idle",
   deleteStatus: "idle",
   currentCategory: {
     title: "",
@@ -89,11 +66,57 @@ const initialState: CategoryState = {
   },
 };
 
-//Slice
+//Thunks
+//GET 카테고리
+export const getCategoryThunk = createAsyncThunk(
+  "category/get",
+  async (): Promise<CategoryType[] | AxiosError> => {
+    try {
+      const response = await categoryAPI.get();
+      return response.data;
+    } catch (err) {
+      return Promise.reject(err as AxiosError);
+    }
+  }
+);
+
+//카테고리 추가
+export const createCategoryThunk = createAsyncThunk(
+  "category/add",
+  async (newCategoryTitle: string): Promise<CategoryType | AxiosError> => {
+    try {
+      const response = await categoryAPI.create(newCategoryTitle);
+      return response.data;
+    } catch (err) {
+      return Promise.reject(err as AxiosError);
+    }
+  }
+);
+
+//카테고리 제거
+export const deleteCategoryThunk = createAsyncThunk(
+  "category/delete",
+  async (categoryId: string, { rejectWithValue }) => {
+    try {
+      await categoryAPI.delete(categoryId);
+      return categoryId;
+    } catch (err) {
+      const errResponse = (err as AxiosError).response;
+      const errData = {
+        status: errResponse?.status,
+        data: errResponse?.data,
+      };
+      return rejectWithValue(errData);
+    }
+  }
+);
+
+//카테고리 redux slice
 const categoryslice = createSlice({
   name: "category",
   initialState,
   reducers: {
+    //현재 카테고리 title로 설정
     setCurrentCategoryByTitle: (
       state: CategoryState,
       action: PayloadAction<string | undefined>
@@ -116,42 +139,54 @@ const categoryslice = createSlice({
       );
       state.currentCategory = findedCategory || all;
     },
-    clearAddCategoryStatus: (state: CategoryState) => {
-      state.addStatus = "idle";
+    //카테고리 추가 상태 clear
+    clearCreateCategoryStatus: (state: CategoryState) => {
+      state.createStatus = "idle";
     },
+    //카테고리 삭제 상태 clear
     clearDeleteCategoryStatus: (state: CategoryState) => {
       state.deleteStatus = "idle";
     },
   },
   extraReducers: (builder) => {
     builder
+      //카테고리 가져오기 진행
       .addCase(getCategoryThunk.pending, (state, action) => {
         state.status = "pending";
       })
+      //가져오기 성공
       .addCase(getCategoryThunk.fulfilled, (state, action) => {
         state.status = "success";
 
         const categories = action.payload as CategoryType[];
-        state.categories = SortCategory(categories);
+        //카테고리 서버에서 정렬된 배열로 들어옴
+        state.categories = categories;
       })
+      //가져오기 실패
       .addCase(getCategoryThunk.rejected, (state, action) => {
         state.status = "failed";
       })
-      .addCase(addCategoryThunk.pending, (state, action) => {
-        state.addStatus = "pending";
+      //카테고리 추가 진행
+      .addCase(createCategoryThunk.pending, (state, action) => {
+        state.createStatus = "pending";
       })
-      .addCase(addCategoryThunk.fulfilled, (state, action) => {
-        state.addStatus = "success";
+      //카테고리 추가 성공
+      .addCase(createCategoryThunk.fulfilled, (state, action) => {
+        state.createStatus = "success";
 
         const newCategory = action.payload as CategoryType;
+        //새로 추가된 카테고리 순서 정렬
         state.categories = SortCategory([...state.categories, newCategory]);
       })
-      .addCase(addCategoryThunk.rejected, (state, action) => {
-        state.addStatus = "failed";
+      //카테고리 추가 실패
+      .addCase(createCategoryThunk.rejected, (state, action) => {
+        state.createStatus = "failed";
       })
+      //카테고리 제거 진행
       .addCase(deleteCategoryThunk.pending, (state, action) => {
         state.deleteStatus = "pending";
       })
+      //카테고리 제거 성공
       .addCase(deleteCategoryThunk.fulfilled, (state, action) => {
         state.deleteStatus = "success";
 
@@ -160,15 +195,16 @@ const categoryslice = createSlice({
           (category) => category._id !== deletedCategoryId
         );
       })
+      //카테고리 제거 실패
       .addCase(deleteCategoryThunk.rejected, (state, action) => {
         state.deleteStatus = "failed";
-        const error = action.payload as AxiosResponse<{
-          type: string;
-          error: string;
-        }>;
+        const error = action.payload as {
+          status: number;
+          data: { type: string; error: string };
+        };
         console.log(error);
 
-        const errorStatus = error.status || 500;
+        const errorStatus = error.status;
         const errorMessage = error.data.error;
         if (errorStatus === 403) {
           if (errorMessage === "can't delete category with content") {
@@ -187,7 +223,7 @@ const categoryslice = createSlice({
 
 export const {
   setCurrentCategoryByTitle,
-  clearAddCategoryStatus,
+  clearCreateCategoryStatus,
   clearDeleteCategoryStatus,
 } = categoryslice.actions;
 

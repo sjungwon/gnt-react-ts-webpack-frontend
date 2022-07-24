@@ -1,8 +1,8 @@
 import { AxiosResponse } from "axios";
 import { CommentType } from "../redux/modules/post";
-import { API, APIWithToken } from "./basic";
+import defaultAPI from "./default";
 
-export interface AddCommentReqData {
+export interface CreateCommentReqData {
   postId: string;
   category: string;
   profile: string;
@@ -18,25 +18,37 @@ export interface UpdateCommentReqData extends UpdateCommentReq {
   commentId: string;
 }
 
-export interface GetMoreCommentData {
+export interface GetCommentData {
   postId: string;
   lastCommentDate: string;
 }
 
 class CommentAPI {
-  private path: string = "/comments";
+  private readonly path: string = "/comments";
+  private readonly API = defaultAPI.API;
+  private readonly APIWithToken = defaultAPI.APIWithToken;
 
-  public createComment = (data: AddCommentReqData) => {
-    return APIWithToken.post<
+  //GET 댓글 (더보기)
+  public readonly get = (data: GetCommentData) => {
+    const path = this.path + "/" + data.postId + "/" + data.lastCommentDate;
+    return this.API.get<CommentType[], AxiosResponse<CommentType[]>, void>(
+      path
+    );
+  };
+
+  //POST 댓글 생성
+  public readonly create = (data: CreateCommentReqData) => {
+    return this.APIWithToken.post<
       CommentType,
       AxiosResponse<CommentType>,
-      AddCommentReqData
+      CreateCommentReqData
     >(this.path, data);
   };
 
-  public updateComment = (data: UpdateCommentReqData) => {
+  //PATCH 댓글 수정
+  public readonly update = (data: UpdateCommentReqData) => {
     const path = this.path + "/" + data.commentId;
-    return APIWithToken.patch<
+    return this.APIWithToken.patch<
       CommentType,
       AxiosResponse<CommentType>,
       UpdateCommentReq
@@ -46,22 +58,23 @@ class CommentAPI {
     });
   };
 
-  public blockComment = (commentId: string) => {
-    const path = this.path + "/block/" + commentId;
-    return APIWithToken.patch<void, AxiosResponse<void>, void>(path);
-  };
-
-  public deleteComment = (commentId: string) => {
+  //DELETE 댓글 제거
+  public readonly delete = (commentId: string) => {
     const path = this.path + "/" + commentId;
-    return APIWithToken.delete<CommentType, AxiosResponse<CommentType>, void>(
-      path
-    );
+    return this.APIWithToken.delete<
+      CommentType,
+      AxiosResponse<CommentType>,
+      void
+    >(path);
   };
 
-  public getMoreComments = (data: GetMoreCommentData) => {
-    const path = this.path + "/" + data.postId + "/" + data.lastCommentDate;
-    return API.get<CommentType[], AxiosResponse<CommentType[]>, void>(path);
+  //PATCH 댓글 차단
+  public readonly block = (commentId: string) => {
+    const path = this.path + "/block/" + commentId;
+    return this.APIWithToken.patch<void, AxiosResponse<void>, void>(path);
   };
 }
 
-export default new CommentAPI();
+const commentAPI = new CommentAPI();
+
+export default commentAPI;

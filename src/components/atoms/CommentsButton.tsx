@@ -10,6 +10,7 @@ interface PropsType {
   className?: string;
 }
 
+//댓글 버튼 -> 포스트, 댓글에서 사용
 const CommentsButton: FC<PropsType> = ({
   size,
   active,

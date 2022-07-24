@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { getProfileByIdAPI } from "../apis/profile";
+import profileAPI from "../apis/profile";
 import InfoCard from "../components/molecules/InfoCard";
 import ProfileCard from "../components/molecules/ProfileCard";
 import PostList from "../components/organisms/PostList";
@@ -23,7 +23,7 @@ export default function ProfilePage() {
       return;
     }
     try {
-      const response = await getProfileByIdAPI(params.id);
+      const response = await profileAPI.getById(params.id);
       if (response.data?._id) {
         setProfile(response.data);
       }
