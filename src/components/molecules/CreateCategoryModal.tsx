@@ -10,7 +10,7 @@ import { AppDispatch, RootState } from "../../redux/store";
 import DefaultButton from "../atoms/DefaultButton";
 import DefaultTextInput from "../atoms/DefaultTextInput";
 import LoadingBlock from "../atoms/LoadingBlock";
-import styles from "./scss/AddCategory.module.scss";
+import styles from "./scss/CreateCategoryModal.module.scss";
 
 interface PropsType {
   show: boolean;

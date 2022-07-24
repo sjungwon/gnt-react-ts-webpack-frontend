@@ -1,4 +1,4 @@
-import styles from "./scss/AddComment.module.scss";
+import styles from "./scss/CreateComment.module.scss";
 import { useCallback, useRef, useState } from "react";
 import ProfileSelector from "../atoms/ProfileSelector";
 import LoadingBlock from "../atoms/LoadingBlock";
