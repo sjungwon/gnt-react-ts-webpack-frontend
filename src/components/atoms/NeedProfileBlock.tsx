@@ -1,7 +1,7 @@
 import { FC, ReactNode, useCallback, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-import AddProfileModal from "../molecules/AddProfileModal";
+import CreateProfileModal from "../molecules/CreateProfileModal";
 import DefaultButton from "./DefaultButton";
 import styles from "./scss/NeedProfileBlock.module.scss";
 
@@ -40,7 +40,7 @@ const NeedProfileBlock: FC<PropsType> = ({
       <DefaultButton size="md" onClick={openMd} className={styles.add_profile}>
         프로필 추가
       </DefaultButton>
-      <AddProfileModal
+      <CreateProfileModal
         show={mdShow}
         close={closeMd}
         categoryTitle={categoryTitle}
