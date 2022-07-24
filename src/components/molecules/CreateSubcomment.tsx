@@ -1,4 +1,4 @@
-import styles from "./scss/AddSubcomment.module.scss";
+import styles from "./scss/CreateSubcomment.module.scss";
 import { useCallback, useRef, useState } from "react";
 import NeedLoginBlock from "../atoms/NeedLoginBlock";
 import NeedProfileBlock from "../atoms/NeedProfileBlock";
@@ -38,16 +38,16 @@ export default function AddSubcomment({
   setModeDefault,
   addSubcommentRenderLengthHandler,
 }: PropsType) {
-  //유저 데이터 사용 -> 프로필, 이름
+  //빈 프로필 데이터
   const initialProfile = useSelector(
     (state: RootState) => state.profile.initialProfile
   );
+  //선택된 프로필
   const [currentProfile, setCurrentProfile] =
     useState<ProfileType>(initialProfile);
 
-  //데이터 제출용 ref
+  //teatArea ref
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  //데이터 제출
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -56,6 +56,8 @@ export default function AddSubcomment({
   const categories = useSelector(
     (state: RootState) => state.category.categories
   );
+
+  //대댓글 추가 제출
   const clickToSubmit = useCallback(async () => {
     const text = textAreaRef.current ? textAreaRef.current.value.trim() : "";
     if (!text) {
@@ -63,9 +65,11 @@ export default function AddSubcomment({
     }
     setLoading(true);
     if (!prevData) {
+      //추가인 경우
       const findedCategory = categories.find(
         (category) => category.title === categoryTitle
       );
+      //추가하려는 카테고리가 없는 경우
       if (!findedCategory) {
         window.alert("댓글을 추가하는데 실패했습니다. 다시 시도해주세요.");
         setLoading(false);
@@ -82,6 +86,7 @@ export default function AddSubcomment({
         const response = await SubcommentAPI.create(submitData);
         const newSubcomment = response.data;
         dispatch(createSubcomments(newSubcomment));
+        //대댓글 리스트 렌더 길이 조절
         if (addSubcommentRenderLengthHandler) {
           addSubcommentRenderLengthHandler();
         }
@@ -95,6 +100,7 @@ export default function AddSubcomment({
       setModeDefault();
       return;
     }
+    //수정인 경우
     const submitData: UpdateSubcommentData = {
       _id: prevData._id,
       profile: currentProfile._id,
@@ -133,16 +139,22 @@ export default function AddSubcomment({
             <ProfileSelector
               size="sm"
               setCurrentProfile={setCurrentProfile}
-              category={categoryTitle}
+              categoryTitle={categoryTitle}
             />
           </CommentCard.Header>
           <CommentCard.Body>
-            <DefaultTextarea
-              size="sm"
-              ref={textAreaRef}
-              defaultValue={prevData?.text}
-              maxLength={250}
-            />
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <DefaultTextarea
+                size="sm"
+                ref={textAreaRef}
+                defaultValue={prevData?.text}
+                maxLength={250}
+              />
+            </form>
           </CommentCard.Body>
           <CommentCard.Buttons>
             <DefaultButton
