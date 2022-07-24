@@ -2,7 +2,7 @@ import { AxiosResponse } from "axios";
 import { TypedForm } from "../classes/TypedForm";
 import { ImageType } from "../components/molecules/ImageSlide";
 import { PostType } from "../redux/modules/post";
-import { API, APIWithToken } from "./basic";
+import defaultAPI from "./default";
 
 interface PostReqType {
   profile: string;
@@ -21,13 +21,17 @@ export interface UpdatePostReqType extends PostReqType {
 
 class PostAPI {
   private path: string = "/posts";
+  private readonly API = defaultAPI.API;
+  private readonly APIWithToken = defaultAPI.APIWithToken;
 
-  public get = (lastPostDate?: string) => {
+  //GET 포스트 (최신 포스트 6개)
+  public readonly get = (lastPostDate?: string) => {
     const path = this.path + "?last=" + (lastPostDate || "");
-    return API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
+    return this.API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
   };
 
-  public getByCategoryId = (data: {
+  //GET 포스트 (카테고리별 포스트 6개)
+  public readonly getByCategoryId = (data: {
     categoryId: string;
     lastPostDate?: string;
   }) => {
@@ -37,10 +41,11 @@ class PostAPI {
       data.categoryId +
       "?last=" +
       (data.lastPostDate || "");
-    return API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
+    return this.API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
   };
 
-  public getByProfileId = (data: {
+  //GET 포스트 (프로필에 맞는 포스트 6개)
+  public readonly getByProfileId = (data: {
     profileId: string;
     lastPostDate?: string;
   }) => {
@@ -50,10 +55,11 @@ class PostAPI {
       data.profileId +
       "?last=" +
       (data.lastPostDate || "");
-    return API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
+    return this.API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
   };
 
-  public getByUsername = (data: {
+  //GET 포스트 (유저 이름에 맞는 포스트 6개)
+  public readonly getByUsername = (data: {
     username: string;
     lastPostDate?: string;
   }) => {
@@ -63,11 +69,12 @@ class PostAPI {
       encodeURIComponent(data.username) +
       "?last=" +
       (data.lastPostDate || "");
-    return API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
+    return this.API.get<PostType[], AxiosResponse<PostType[]>, void>(path);
   };
 
-  public create = (newPost: TypedForm<AddPostReqType>) => {
-    return APIWithToken.post<PostType, AxiosResponse<PostType>, FormData>(
+  //POST 포스트 생성
+  public readonly create = (newPost: TypedForm<AddPostReqType>) => {
+    return this.APIWithToken.post<PostType, AxiosResponse<PostType>, FormData>(
       this.path,
       newPost.data,
       {
@@ -78,8 +85,9 @@ class PostAPI {
     );
   };
 
-  public update = (updatePost: TypedForm<UpdatePostReqType>) => {
-    return APIWithToken.patch<PostType, AxiosResponse<PostType>, FormData>(
+  //PATCH 포스트 수정
+  public readonly update = (updatePost: TypedForm<UpdatePostReqType>) => {
+    return this.APIWithToken.patch<PostType, AxiosResponse<PostType>, FormData>(
       this.path,
       updatePost.data,
       {
@@ -90,25 +98,35 @@ class PostAPI {
     );
   };
 
-  public delete = (postId: string) => {
+  //DELETE 포스트 제거
+  public readonly delete = (postId: string) => {
     const path = this.path + "/" + postId;
-    return APIWithToken.delete<void, AxiosResponse<void>, void>(path);
+    return this.APIWithToken.delete<void, AxiosResponse<void>, void>(path);
   };
 
-  public blockPost = (postId: string) => {
+  //PATCH 포스트 차단
+  public readonly block = (postId: string) => {
     const path = this.path + "/block/" + postId;
-    return APIWithToken.patch<void, AxiosResponse<void>, void>(path);
+    return this.APIWithToken.patch<void, AxiosResponse<void>, void>(path);
   };
 
-  public likePost = (postId: string) => {
+  //PATCH 포스트 좋아요
+  public readonly like = (postId: string) => {
     const path = this.path + "/likes/" + postId;
-    return APIWithToken.patch<PostType, AxiosResponse<PostType>, void>(path);
+    return this.APIWithToken.patch<PostType, AxiosResponse<PostType>, void>(
+      path
+    );
   };
 
-  public dislikePost = (postId: string) => {
+  //PATCH 포스트 싫어요
+  public readonly dislike = (postId: string) => {
     const path = this.path + "/dislikes/" + postId;
-    return APIWithToken.patch<PostType, AxiosResponse<PostType>, void>(path);
+    return this.APIWithToken.patch<PostType, AxiosResponse<PostType>, void>(
+      path
+    );
   };
 }
 
-export default new PostAPI();
+const postAPI = new PostAPI();
+
+export default postAPI;
