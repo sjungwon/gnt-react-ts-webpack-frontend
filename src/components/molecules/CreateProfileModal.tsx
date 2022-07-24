@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Modal } from "react-bootstrap";
-import styles from "./scss/AddProfileModal.module.scss";
+import styles from "./scss/CreateProfileModal.module.scss";
 import DefaultButton from "../atoms/DefaultButton";
 import LoadingBlock from "../atoms/LoadingBlock";
 import DefaultTextInput from "../atoms/DefaultTextInput";
-import AddCategory from "./AddCategory";
+import CreateCategoryModal from "./CreateCategoryModal";
 import { BsTrash } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
 import {
-  addProfileThunk,
+  createProfileThunk,
   clearModifyProfileStatus,
   ProfileType,
   updateProfileThunk,
 } from "../../redux/modules/profile";
 import { isIncludePathSpecial } from "../../functions/TextValidFunc";
-import { AddProfileReqType, UpdateProfileReqType } from "../../apis/profile";
+import { CreateProfileReqType, UpdateProfileReqType } from "../../apis/profile";
 import CategorySelector from "../atoms/CategorySelector";
 import { TypedForm } from "../../classes/TypedForm";
 import ImageFileInputButton from "../atoms/ImageFileInputButton";
@@ -32,7 +32,8 @@ interface ProfileCategoryType {
   title: string;
 }
 
-export default function AddProfileModal({
+//profile 추가 모달
+export default function CreateProfileModal({
   show,
   close,
   prevData,
@@ -47,6 +48,7 @@ export default function AddProfileModal({
 
   const nicknameRef = useRef<HTMLInputElement>(null);
 
+  //프로필 추가할 카테고리
   const [selectedCategory, setSelectedCategory] =
     useState<ProfileCategoryType | null>(null);
 
@@ -54,10 +56,12 @@ export default function AddProfileModal({
     (state: RootState) => state.category.categories
   );
 
+  //현재 전역에서 선택된 카테고리가 있으면 해당 카테고리로 제한
   const filteredCategories = categoryTitle
     ? categories.filter((category) => category.title === categoryTitle)
     : categories;
 
+  //카테고리 선택
   const select = useCallback(
     (eventKey: string | null) => {
       if (eventKey !== null && filteredCategories.length) {
@@ -68,6 +72,7 @@ export default function AddProfileModal({
     [filteredCategories]
   );
 
+  //프로필 이미지
   const [file, setFile] = useState<File | undefined | null>(undefined);
   const [image, setImage] = useState<string>("");
 
@@ -101,6 +106,7 @@ export default function AddProfileModal({
   //   ImageKeys | undefined
   // >(prevData?.credential);
 
+  //프로필 이미지 추가
   const addImage = useCallback((event: any) => {
     const files = (event.target as HTMLInputElement).files;
     const file = files ? files[0] : null;
@@ -110,6 +116,7 @@ export default function AddProfileModal({
     }
   }, []);
 
+  //프로필 이미지 제거
   const removeImage = useCallback(() => {
     if (prevData && prevData.profileImage.URL) {
       setFile(null);
@@ -144,6 +151,7 @@ export default function AddProfileModal({
   //   });
   // }, []);
 
+  //프로필 추가 제출
   const submitProfile = useCallback(async () => {
     if (!selectedCategory) {
       window.alert("게임을 선택해주세요.");
@@ -189,7 +197,7 @@ export default function AddProfileModal({
       return;
     }
 
-    let data: AddProfileReqType = {
+    let data: CreateProfileReqType = {
       nickname,
       category: selectedCategory._id,
     };
@@ -231,10 +239,11 @@ export default function AddProfileModal({
           profileImage: file,
         };
       }
-      dispatch(addProfileThunk(new TypedForm<AddProfileReqType>(data)));
+      dispatch(createProfileThunk(new TypedForm<CreateProfileReqType>(data)));
     }
   }, [close, dispatch, file, image, prevData, profiles, selectedCategory]);
 
+  //추가,수정 성공시
   useEffect(() => {
     if (modifyProfileStatus === "success") {
       dispatch(clearModifyProfileStatus());
@@ -242,13 +251,16 @@ export default function AddProfileModal({
     }
   }, [modifyProfileStatus, close, prevData, dispatch]);
 
-  const [addCategoryShow, setAddCategoryShow] = useState<boolean>(false);
-  const addCategoryShowOpen = useCallback(() => {
-    setAddCategoryShow(true);
+  //카테고리 추가 모달 데이터
+  const [createCategoryShow, setCreateCategoryShow] = useState<boolean>(false);
+  const createCategoryShowOpen = useCallback(() => {
+    setCreateCategoryShow(true);
   }, []);
-  const addCategoryShowClose = useCallback(() => {
-    setAddCategoryShow(false);
+  const createCategoryShowClose = useCallback(() => {
+    setCreateCategoryShow(false);
   }, []);
+
+  const loading = modifyProfileStatus === "pending";
 
   return (
     <Modal backdrop="static" show={show} size="sm" centered>
@@ -258,11 +270,14 @@ export default function AddProfileModal({
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <DefaultButton size="md" onClick={addCategoryShowOpen} color="blue">
+        <DefaultButton size="md" onClick={createCategoryShowOpen} color="blue">
           게임 추가
         </DefaultButton>
         <div className={styles.form}>
-          <AddCategory show={addCategoryShow} close={addCategoryShowClose} />
+          <CreateCategoryModal
+            show={createCategoryShow}
+            close={createCategoryShowClose}
+          />
         </div>
         <form
           encType="multipart/form-data"
@@ -321,56 +336,6 @@ export default function AddProfileModal({
             />
           </div>
         </form>
-
-        {/* <div className={styles.form}>
-          <label className={styles.form_label}>게임: </label>
-          <DefaultTextInput
-            disabled
-            value={
-              categories.length
-                ? selectedCategory
-                  ? selectedCategory.title
-                  : "게임을 선택해주세요."
-                : "게임을 추가해주세요."
-            }
-            className={styles.input}
-          />
-          <CategorySelector
-            onSelect={select}
-            size="sm"
-            categories={categories}
-          />
-        </div> */}
-        {/* <div className={styles.form}>
-          <label className={styles.form_label}>프로필 이미지:</label>
-          <img
-            // src={image ? image : "/default_profile.png"}
-            src="/default_profile.png"
-            alt="added_profile"
-            className={styles.form_file_img}
-          /> */}
-        {/* <ImageFileInputButton
-            onImageFileInput={addImage}
-            multiple={false}
-            color="blue"
-          />
-          <DefaultButton
-            onClick={removeImage}
-            size="sq_md"
-            className={styles.margin_left}
-            color="blue"
-          >
-            <BsTrash />
-          </DefaultButton> */}
-        {/* </div> */}
-        {/* <div className={styles.form}>
-          <label className={styles.form_label}>닉네임: </label>
-          <DefaultTextInput
-            ref={nicknameRef}
-            placeholder="닉네임을 입력해주세요"
-            className={styles.input}
-          />
-        </div> */}
         {/* <div>
           <div className={styles.form}>
             <label className={`${styles.form_label} ${styles.margin_right}`}>
@@ -401,20 +366,12 @@ export default function AddProfileModal({
         ) : null}
       </Modal.Body>
       <Modal.Footer className={styles.footer}>
-        <DefaultButton
-          size="md"
-          onClick={submitProfile}
-          disabled={modifyProfileStatus === "pending"}
-        >
-          <LoadingBlock loading={modifyProfileStatus === "pending"}>
+        <DefaultButton size="md" onClick={submitProfile} disabled={loading}>
+          <LoadingBlock loading={loading}>
             {prevData ? "수정" : "추가"}
           </LoadingBlock>
         </DefaultButton>
-        <DefaultButton
-          size="md"
-          onClick={close}
-          disabled={modifyProfileStatus === "pending"}
-        >
+        <DefaultButton size="md" onClick={close} disabled={loading}>
           취소
         </DefaultButton>
       </Modal.Footer>
