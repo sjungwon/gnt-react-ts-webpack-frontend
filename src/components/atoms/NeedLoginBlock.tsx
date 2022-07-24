@@ -8,6 +8,7 @@ interface PropsType {
   requiredMessage?: string;
 }
 
+//로그인이 필요한 작업에서 로그인 필요 메세지 반환
 const NeedLoginBlock: FC<PropsType> = ({ children, requiredMessage }) => {
   const username = useSelector((state: RootState) => state.auth.username);
 

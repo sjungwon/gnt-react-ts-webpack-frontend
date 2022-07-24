@@ -11,6 +11,7 @@ interface PropsType {
   categoryTitle: string;
 }
 
+//프로필이 필요한 경우 프로필 필요 메세지와 추가 버튼 반환
 const NeedProfileBlock: FC<PropsType> = ({
   children,
   requiredMessage,

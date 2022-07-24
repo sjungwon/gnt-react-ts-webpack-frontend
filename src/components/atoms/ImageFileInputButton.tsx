@@ -9,6 +9,7 @@ interface PropsType {
   color?: "blue";
 }
 
+//file input 태그의 파일 선택을 감추고 기본 button으로 파일 선택 처리
 const ImageFileInputButton: FC<PropsType> = ({
   onImageFileInput,
   multiple = false,

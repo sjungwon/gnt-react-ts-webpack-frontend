@@ -8,28 +8,28 @@ import styles from "./scss/Selector.module.scss";
 interface PropsType {
   size?: "sm" | "lg";
   setCurrentProfile: (profile: ProfileType) => void;
-  category: string;
+  categoryTitle: string;
 }
 
+//프로필 선택기 -> 선택 가능한 프로필 보여주고 선택하면 해당 프로필로 설정
 export default function ProfileSelector({
   size,
   setCurrentProfile,
-  category,
+  categoryTitle,
 }: PropsType) {
   const profiles = useSelector((state: RootState) => state.profile.profiles);
 
   const [filteredProfiles, setFilteredProfiles] = useState<ProfileType[]>([]);
 
   useEffect(() => {
-    const filteredProfileArr =
-      category === ""
-        ? profiles
-        : profiles.filter((profile) => profile.category.title === category);
+    const filteredProfileArr = !categoryTitle
+      ? profiles
+      : profiles.filter((profile) => profile.category.title === categoryTitle);
     setFilteredProfiles(filteredProfileArr);
     if (filteredProfileArr.length) {
       setCurrentProfile(filteredProfileArr[0]);
     }
-  }, [category, profiles, setCurrentProfile]);
+  }, [categoryTitle, profiles, setCurrentProfile]);
 
   const onSelectHandler = useCallback(
     (eventKey: string | null) => {
